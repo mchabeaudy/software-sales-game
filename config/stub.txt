@@ -1,0 +1,30 @@
+gameloop
+read playerId:int
+read playerCount:int
+read cash:int
+read devs:int
+read sales:int
+read managers:int
+read debugRate:int
+read features:int
+read bugs:int
+loop playerCount read market:int
+write 0 0 0 0
+
+STATEMENT
+Get the market!
+
+INPUT
+playerId: Your player id
+playerCount: Number of players
+cash: Your cash
+devs: Developers that you have
+sales: Sales that you have
+managers: Managers that you have
+debugRate: Previous debug rate
+features: Features you have developed
+bugs: Bugs in your software
+market: Market share
+
+OUTPUT
+<devsToHire> <salesToHire> <managersToHire> <debugRate>
