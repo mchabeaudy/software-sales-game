@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 
@@ -49,15 +48,16 @@ public class Referee extends AbstractReferee {
             Company company = companies.get(player);
             Action action = player.getAction(company);
             gameManager.addToGameSummary(
-                    String.format("Player %s played (%d %d %d %d)", action.getPlayer().getNicknameToken(),
+                    String.format("Player %s played (%d %d %d %d %d)", action.getPlayer().getNicknameToken(),
                             action.getDevsHired(), action.getSalesHired(), action.getManagersHired(),
-                            action.getDebugRate()));
+                            action.getDebugRate(), action.getSalesAggressivenessRate()));
             company.addDevs(action.getDevsHired());
             company.addSales(action.getSalesHired());
             company.addManagers(action.getManagersHired());
             company.setDebugRate(action.getDebugRate());
+            company.setSalesAggressivenessRate(action.getSalesAggressivenessRate());
             if (turn != 0 && turn % gameManager.getPlayerCount() == 0) {
-                calculateState();
+                calculateState(turn);
             }
 
         } catch (TimeoutException e) {
@@ -72,12 +72,12 @@ public class Referee extends AbstractReferee {
         }
     }
 
-    private void calculateState() {
+    private void calculateState(int turn) {
 
         range(0, gameManager.getPlayerCount()).forEach(i -> {
             Player player = gameManager.getPlayer(i);
             Company company = companies.get(player);
-            company.payEmployees();
+            company.payEmployees(turn, gameManager.getPlayerCount());
             company.developFeatures();
             company.increaseBugs();
         });
@@ -86,37 +86,31 @@ public class Referee extends AbstractReferee {
 
     private void growMarket() {
         Collection<Company> comps = companies.values();
-        comps.forEach(Company::resetAvailableMarket);
-        int remainingEmptyMarket = 100 - comps.stream().mapToInt(Company::getMarket).sum();
-        double saleAverage = comps.stream().mapToInt(Company::getSales).average().orElse(0);
-        double featureAverage = comps.stream().mapToInt(Company::getFeatures).average().orElse(0);
-        comps.forEach(c -> c.buildScore(saleAverage, featureAverage));
-        int totalScore = comps.stream().mapToInt(Company::getScore).sum();
-        int totalToTake = 5 * gameManager.getPlayerCount();
-        if (remainingEmptyMarket >= 0) {
-            AtomicInteger toTake = new AtomicInteger(Math.min(totalToTake, remainingEmptyMarket));
-            comps.forEach(c -> c.addMarket(toTake.getAndAdd(-Math.min(toTake.get() * c.getScore() / totalScore, 10))));
-        }
-        comps.stream()
-                .filter(c -> c.getAvailableMarket() > 0)
-                .sorted(Comparator.comparingInt(Company::getScore).reversed())
-                .forEach(comp -> {
-                    Company weakest = getWeakest(comps, comp);
-                    int compScore = comp.getScore();
-                    if (Objects.nonNull(weakest)) {
-                        int takenMarket = comp.getAvailableMarket() * compScore / (compScore + weakest.getMarket());
-                        weakest.addMarket(-takenMarket);
-                        comp.addMarket(takenMarket);
-                    }
-                });
-    }
 
-    private Company getWeakest(Collection<Company> comps, Company comp) {
-        return comps.stream()
-                .filter(c -> c.getMarket() > 0 && !c.equals(comp) && c.getScore() < comp.getScore()
-                        && c.getMarket() > 10)
-                .min(Comparator.comparingInt(Company::getScore))
-                .orElse(null);
+        // simulate new market
+        comps.forEach(c -> c.setMarket((int) (0.95 * c.getMarket())));
+
+        // set sales market
+        double saleAverage = comps.stream().mapToInt(Company::getSales).average().orElse(0);
+        comps.forEach(c -> c.resetAvailableMarket(saleAverage));
+
+        // calculate feature average and companies score
+        double featureAverage = comps.stream().mapToInt(Company::getFeatures).average().orElse(0);
+        comps.forEach(c -> c.buildScore(featureAverage));
+        double scoreAverage = comps.stream().mapToInt(Company::getScore).average().orElse(0);
+
+        // Free market
+        int remainingFreeMarket = 100 - comps.stream().mapToInt(Company::getMarket).sum();
+        AtomicInteger takenFreeMarket = new AtomicInteger(0);
+        comps.stream()
+                .sorted(Comparator.comparingInt(Company::getScore).reversed())
+                .forEach(c -> c.takeFreeMarket(remainingFreeMarket, takenFreeMarket, scoreAverage));
+
+        // Competitive market
+        comps.stream()
+                .filter(c -> c.getAvailableCompetitiveMarket() > 0)
+                .sorted(Comparator.comparingInt(Company::getScore).reversed())
+                .forEach(c -> c.takeCompetitiveMarket(comps, scoreAverage));
     }
 
 
@@ -128,7 +122,6 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(Integer.toString(company.getDevs()));
         player.sendInputLine(Integer.toString(company.getSales()));
         player.sendInputLine(Integer.toString(company.getManagers()));
-        player.sendInputLine(Integer.toString(company.getDebugRate()));
         player.sendInputLine(Integer.toString(company.getFeatures()));
         player.sendInputLine(Integer.toString(company.getBugs()));
         range(0, gameManager.getPlayerCount()).forEach(
