@@ -3,6 +3,7 @@ package com.codingame.game;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Company {
@@ -202,8 +203,8 @@ public class Company {
     }
 
 
-    public void increaseBugs() {
-        newBugs = (int) (Math.random() * getRobustness() * features);
+    public void increaseBugs(Random random) {
+        newBugs = (int) (random.nextDouble() * getRobustness() * features);
         bugs += newBugs;
     }
 
@@ -215,10 +216,10 @@ public class Company {
         return salesAggressivenessRate;
     }
 
-    public void setSalesAggressivenessRate(int salesAggressivenessRate) {
+    public void setSalesAggressivenessRate(int salesAggressivenessRate, Random random) {
         int variableRate = 0;
         if (getTotSubordinates() * 0.25 < managers) {
-            variableRate = (int) (100 * Math.random() * 0.6 - 0.3);
+            variableRate = (int) (100 * random.nextDouble() * 0.6 - 0.3);
         }
         this.salesAggressivenessRate = Math.min(Math.max(salesAggressivenessRate + variableRate, 0), 100);
     }
@@ -250,5 +251,9 @@ public class Company {
 
     public int getAvailableCompetitiveMarket() {
         return availableCompetitiveMarket;
+    }
+
+    public int getTotalEmployees() {
+        return devs + sales + managers;
     }
 }

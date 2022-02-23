@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 
@@ -18,6 +19,7 @@ public class Referee extends AbstractReferee {
     @Inject
     private MultiplayerGameManager<Player> gameManager;
     private Map<Player, Company> companies;
+    private Random random = new Random();
 
     @Override
     public void init() {
@@ -30,6 +32,7 @@ public class Referee extends AbstractReferee {
                     p.setPlayerId(i);
                     companies.put(p, new Company());
                 });
+        random.setSeed(gameManager.getSeed());
     }
 
     @Override
@@ -38,9 +41,11 @@ public class Referee extends AbstractReferee {
             gameManager.getPlayers().forEach(p -> p.setScore(companies.get(p).getMarket()));
             endGame();
         }
+
         Player player = gameManager.getPlayer(turn % gameManager.getPlayerCount());
 
-        sendInput(player);
+        int playerTurn = turn / 4;
+        sendInput(player, playerTurn);
 
         player.execute();
 
@@ -55,7 +60,7 @@ public class Referee extends AbstractReferee {
             company.addSales(action.getSalesHired());
             company.addManagers(action.getManagersHired());
             company.setDebugRate(action.getDebugRate());
-            company.setSalesAggressivenessRate(action.getSalesAggressivenessRate());
+            company.setSalesAggressivenessRate(action.getSalesAggressivenessRate(), random);
             if (turn != 0 && turn % gameManager.getPlayerCount() == 0) {
                 calculateState(turn);
             }
@@ -79,7 +84,7 @@ public class Referee extends AbstractReferee {
             Company company = companies.get(player);
             company.payEmployees(turn, gameManager.getPlayerCount());
             company.developFeatures();
-            company.increaseBugs();
+            company.increaseBugs(random);
         });
         growMarket();
     }
@@ -114,10 +119,13 @@ public class Referee extends AbstractReferee {
     }
 
 
-    private void sendInput(Player player) {
+    private void sendInput(Player player, int turn) {
         player.sendInputLine(Integer.toString(player.getPlayerId()));
         player.sendInputLine(Integer.toString(gameManager.getPlayerCount()));
+        player.sendInputLine(Integer.toString(turn));
+
         Company company = companies.get(player);
+        player.sendInputLine(Integer.toString(company.getMarket()));
         player.sendInputLine(Integer.toString(company.getCash()));
         player.sendInputLine(Integer.toString(company.getDevs()));
         player.sendInputLine(Integer.toString(company.getSales()));
@@ -125,7 +133,12 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(Integer.toString(company.getFeatures()));
         player.sendInputLine(Integer.toString(company.getBugs()));
         range(0, gameManager.getPlayerCount()).forEach(
-                i -> player.sendInputLine(Integer.toString(companies.get(gameManager.getPlayer(i)).getMarket())));
+                i -> {
+                    Company comp = companies.get(gameManager.getPlayer(i));
+                    player.sendInputLine(Integer.toString(i));
+                    player.sendInputLine(Integer.toString(comp.getMarket()));
+                    player.sendInputLine(Integer.toString(comp.getDevs() + comp.getTotalEmployees()));
+                });
     }
 
     private void endGame() {

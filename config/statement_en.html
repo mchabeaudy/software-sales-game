@@ -1,0 +1,104 @@
+<div class="statement-body">
+
+  <!-- GOAL -->
+  <div class="statement-section statement-goal">
+    <h1><span class="icon icon-goal">&nbsp;</span> <span>Goal</span></h1>
+
+    <div class="statement-goal-content">Your have been chosen to lead a start-up that sells a
+      software. The goal is to get the most market share before the time runs out, but beware the
+      competition may be tough!
+    </div>
+  </div>
+  <!-- RULES -->
+
+  <div class="statement-section statement-rules">
+    <h1><span class="icon icon-rules">&nbsp;</span> <span>Rules</span></h1>
+
+    <div>
+      <div class="statement-rules-content">During the competition
+        <const>4</const>
+        start-ups will try to get the most market share.<br>
+        To sell your software you will have to recruit employees and give them orders.<br>
+        <br>
+        Your can recruit different types of employees:<br>
+        <ul>
+          <li>Developers, developing new features for your software and fixing bugs</li>
+          <li>Sellers, selling your software increasing your market share</li>
+          <li>Managers, helping you to control other employees so that they perform their task correctly</li>
+        </ul>
+        Employees don't work for free, you will have to pay them each turn:
+        <ul>
+          <li>Developers : <const>$10</const> for each</li>
+          <li>Sellers : <const>$10</const> for each, plus <const>$10</const> <b>for each percentage</b> of market share acquired during the previous round</li>
+          <li>Managers : <const>$20</const> for each</li>
+        </ul>
+        For example, if you have 5 developers, 3 seller, 2 managers, and your market share increased from 5% to 10%.<br>
+        You will spend 5*10 + 3*10 + (10-5)*10 + 2*20 = $170.<br>
+        If you don't have enough cash to pay your employees they will be fired one by one until you have enough money to pay the others, starting by developers, then sellers, then managers.<br>
+        In the previous example if you had only $150 cash 2 developers would be fired to pay the others.<br>
+        <br>
+        Different type of actions can be performed by your employees:
+        <ul>
+          <li>Developers : they can either work on developing new features either work on fixing existing bugs
+          </li>
+          <li>Sellers : they can either sell for new client either try to steal clients for other start-ups (harder) </li>
+          <li>Managers : manage other employees and determine your recruitment capacity</li>
+        </ul>
+        But be careful! If you have less than <const>1</const> manager per <const>4</const> employees (developer or seller) each of them have 50% chance to change their task assignation (for example a developer that was developing new features will decide by himself to debug instead)<br>
+        <br>
+        Recruitment capacity:<br>
+        Total number of employees that you can recruit in your start-up (excluding managers) is
+        equal to <const>5*managers</const>
+        <br>
+        Number of employees than you can recruit of fire each turn is equal to <const>1.5*managers</const> <b>rounded down</b><br>
+        Number of managers that you can recruit or fire each turn is equal to 1, there is no maximum
+        limit for total number of your managers in your company<br>
+        <br>
+        Each turn following actions are performed:
+        <ol>
+          <li>Recruitment : number of employees you have is modified according your input values
+          </li>
+          <li>Pay : Your cash increases proportionally to your market share and all employees receive their pay (including new ones)</li>
+          <li>Development: new features are developed (and new bugs appear)</li>
+          <li>Sales : sellers sell your software, increasing your market share</li>
+        </ol>
+        <br>
+
+        <!-- Victory conditions -->
+
+        <div class="statement-victory-conditions">
+          <div class="icon victory">&nbsp;</div>
+
+          <div class="blk">
+            <div class="title">Victory conditions</div>
+
+            <div class="text">
+              <ul style="padding-bottom: 0; margin-bottom: 0;">
+                <li>You reach 80% market share.</li>
+                <li>You have the most market share after 100 turns.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <!-- Lose conditions -->
+
+        <div class="statement-lose-conditions">
+          <div class="icon lose">&nbsp;</div>
+
+          <div class="blk">
+            <div class="title">Lose conditions</div>
+
+            <div class="text">
+              <ul style="padding-bottom: 0; margin-bottom: 0;">
+                <li>Your program input is invalid.</li>
+                <li>An other start up reach 80% market share.</li>
+                <li>Your program doesn't provide an input.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

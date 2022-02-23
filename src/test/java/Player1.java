@@ -6,6 +6,10 @@ import java.util.Scanner;
 
 public class Player1 {
 
+    public static final int MANAGER_COST = 10;
+    public static final int DEV_COST = 5;
+    public static final int SALE_COST = 5;
+
     private int id;
     private int cash;
     private int devs;
@@ -13,6 +17,9 @@ public class Player1 {
     private int managers;
     private int features;
     private int bugs;
+    private int turn = 0;
+    private int market;
+
     private final Map<Integer, Integer> marketShares = new HashMap<>();
 
     public static void main(String[] args) {
@@ -21,31 +28,27 @@ public class Player1 {
         Player1 player = new Player1();
 
         while (true) {
-            int playerId = in.nextInt();
+
+            player.setId(in.nextInt());
             int playerCount = in.nextInt();
-            int cash = in.nextInt();
-            int devs = in.nextInt();
-            int sales = in.nextInt();
-            int managers = in.nextInt();
-            int features = in.nextInt();
-            int bugs = in.nextInt();
+            player.setTurn(in.nextInt());
 
-            player.setId(playerId);
-            player.setCash(cash);
-            player.setDevs(devs);
-            player.setSales(sales);
-            player.setManagers(managers);
-            player.setFeatures(features);
-            player.setBugs(bugs);
+            player.setMarket(in.nextInt());
+            player.setCash(in.nextInt());
+            player.setDevs(in.nextInt());
+            player.setSales(in.nextInt());
+            player.setManagers(in.nextInt());
+            player.setFeatures(in.nextInt());
+            player.setBugs(in.nextInt());
 
-            System.err.println("features: " + features);
-            System.err.println("bugs: " + bugs);
-            System.err.println("cash: " + cash);
-            range(0, playerCount).forEach(id -> {
+            System.err.println(player);
+
+            range(0, playerCount).forEach(k -> {
+                int startUpId = in.nextInt();
                 int marketShare = in.nextInt();
-                //TODO taille de la company (nb employee)
-                player.getMarketShares().put(id, marketShare);
-                System.err.println("id: " + id + "   market share:" + marketShare);
+                int employeesCount = in.nextInt();
+                player.getMarketShares().put(startUpId, marketShare);
+                System.err.println("id: " + startUpId + "   market share:" + marketShare);
             });
 
             Instruction instruction = player.getInstruction();
@@ -59,17 +62,38 @@ public class Player1 {
     public Instruction getInstruction() {
         Instruction instruction = new Instruction();
 
+        double factor = 0.03 * (managers + sales + devs) + 1;
+        double cost = factor * (managers * MANAGER_COST + devs * DEV_COST + sales * SALE_COST);
+        int playerCount = marketShares.size();
+        int market = marketShares.get(id);
+        double revenue = market * (10 * Math.pow(1.05, turn * 1.0 / playerCount));
+
+        int managerToHire;
+        if (cost < 0.6 * revenue || managers < 3) {
+            managerToHire = 1;
+        } else {
+            managerToHire = 0;
+        }
         int available = Math.min(managers * 5 - devs - sales, managers * 2);
-        int devsToHire = Math.min(10 - devs, available);
-        int salesToHire = Math.min(6 - sales, available - devsToHire);
-        int managerToHire = Math.min(3 - managers, 1);
+        int devsToHire, salesToHire;
+        if (devs > sales) {
+            salesToHire = Math.max(0, Math.min(50 - sales, available));
+            devsToHire = Math.max(0, Math.min(50 - devs, available - salesToHire));
+        } else {
+            devsToHire = Math.max(0, Math.min(50 - devs, available));
+            salesToHire = Math.max(0, Math.min(50 - sales, available - devsToHire));
+        }
 
         instruction.setDevsToHire(devsToHire);
         instruction.setSalesToHire(salesToHire);
         instruction.setManagersToHire(managerToHire);
-        instruction.setDebugRate(20);
+        if (bugs > 10) {
+            instruction.setDebugRate(100);
+        } else {
+            instruction.setDebugRate(20);
+        }
         if (marketShares.values().stream().mapToInt(Integer::valueOf).sum() > 90) {
-            instruction.setSalesAggressivenessRate(100);
+            instruction.setSalesAggressivenessRate(80);
         } else {
             instruction.setSalesAggressivenessRate(0);
         }
@@ -184,5 +208,34 @@ public class Player1 {
 
     public Map<Integer, Integer> getMarketShares() {
         return marketShares;
+    }
+
+    public int getMarket() {
+        return market;
+    }
+
+    public void setMarket(int market) {
+        this.market = market;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "cash=" + cash +
+                ", devs=" + devs +
+                ", sales=" + sales +
+                ", managers=" + managers +
+                ", features=" + features +
+                ", bugs=" + bugs +
+                ", market=" + market +
+                '}';
     }
 }

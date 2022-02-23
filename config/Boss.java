@@ -8,6 +8,10 @@ import java.util.Scanner;
 
 class Player {
 
+    public static final int MANAGER_COST = 10;
+    public static final int DEV_COST = 5;
+    public static final int SALE_COST = 5;
+
     private int id;
     private int cash;
     private int devs;
@@ -15,12 +19,14 @@ class Player {
     private int managers;
     private int features;
     private int bugs;
+    private int turn = 0;
+
     private final Map<Integer, Integer> marketShares = new HashMap<>();
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
 
-        Player player = new Player();
+        Player2 player = new Player2();
 
         while (true) {
             int playerId = in.nextInt();
@@ -39,37 +45,76 @@ class Player {
             player.setManagers(managers);
             player.setFeatures(features);
             player.setBugs(bugs);
+            player.turn++;
 
+            System.err.println("bugs: " + bugs);
+            System.err.println("cash: " + cash);
+            System.err.println("devs: " + devs);
+            System.err.println("sales: " + sales);
+            System.err.println("managers: " + managers);
             range(0, playerCount).forEach(id -> {
                 int marketShare = in.nextInt();
                 player.getMarketShares().put(id, marketShare);
+                System.err.println("id: " + id + "   market share:" + marketShare);
             });
 
             Instruction instruction = player.getInstruction();
-            System.out.println(String.format("%d %d %d %d", instruction.getDevsToHire(), instruction.getSalesToHire(),
-                    instruction.getManagersToHire(), instruction.getDebugRate()));
+            System.out.println(
+                    String.format("%d %d %d %d %d", instruction.getDevsToHire(), instruction.getSalesToHire(),
+                            instruction.getManagersToHire(), instruction.getDebugRate(),
+                            instruction.getSalesAggressivenessRate()));
         }
     }
 
     public Instruction getInstruction() {
         Instruction instruction = new Instruction();
 
-        instruction.setDevsToHire(0);
-        instruction.setManagersToHire(0);
-        instruction.setSalesToHire(0);
-        instruction.setDebugRate(0);
+        double factor = 0.03 * (managers + sales + devs) + 1;
+        double cost = factor * (managers * MANAGER_COST + devs * DEV_COST + sales * SALE_COST);
+        int playerCount = marketShares.size();
+        int market = marketShares.get(id);
+        double revenue = market * (10 * Math.pow(1.05, turn * 1.0 / playerCount));
 
-        //TODO develop your algo there
+        int managerToHire;
+        if (cost < 0.8 * revenue || managers < 3) {
+            managerToHire = 1;
+        } else {
+            managerToHire = 0;
+        }
+        int available = Math.min(managers * 5 - devs - sales, managers * 2);
+        int devsToHire, salesToHire;
+        if (devs > sales) {
+            salesToHire = Math.max(0, Math.min(50 - sales, available));
+            devsToHire = Math.max(0, Math.min(50 - devs, available - salesToHire));
+        } else {
+            devsToHire = Math.max(0, Math.min(50 - devs, available));
+            salesToHire = Math.max(0, Math.min(50 - sales, available - devsToHire));
+        }
+
+        instruction.setDevsToHire(devsToHire);
+        instruction.setSalesToHire(salesToHire);
+        instruction.setManagersToHire(managerToHire);
+        if (bugs > 10) {
+            instruction.setDebugRate(100);
+        } else {
+            instruction.setDebugRate(20);
+        }
+        if (marketShares.values().stream().mapToInt(Integer::valueOf).sum() > 90) {
+            instruction.setSalesAggressivenessRate(80);
+        } else {
+            instruction.setSalesAggressivenessRate(0);
+        }
 
         return instruction;
     }
 
-    class Instruction {
+    public static class Instruction {
 
         private int devsToHire;
         private int salesToHire;
         private int managersToHire;
         private int debugRate;
+        private int salesAggressivenessRate;
 
         public int getDevsToHire() {
             return devsToHire;
@@ -101,6 +146,14 @@ class Player {
 
         public void setDebugRate(int debugRate) {
             this.debugRate = debugRate;
+        }
+
+        public int getSalesAggressivenessRate() {
+            return salesAggressivenessRate;
+        }
+
+        public void setSalesAggressivenessRate(int salesAggressivenessRate) {
+            this.salesAggressivenessRate = salesAggressivenessRate;
         }
     }
 
@@ -163,4 +216,5 @@ class Player {
     public Map<Integer, Integer> getMarketShares() {
         return marketShares;
     }
+
 }

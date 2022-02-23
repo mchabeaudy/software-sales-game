@@ -1,28 +1,37 @@
 gameloop
-read playerId:int
+
+read id:int
 read playerCount:int
+read turn:int
+
+read market:int
 read cash:int
 read devs:int
 read sales:int
 read managers:int
 read features:int
 read bugs:int
-loop playerCount read market:int
-write 0 0 0 0
+
+loop playerCount read startUpId:int marketShare:int employeesCount:int
+write 0 0 0 0 0
 
 STATEMENT
 Get the market!
 
 INPUT
-playerId: Your player id
+id: Your player id
 playerCount: Number of players
-cash: Your cash
-devs: Developers that you have
-sales: Sales that you have
-managers: Managers that you have
-features: Features you have developed
+turn: Number of turns since the beginning
+market: Your market share
+cash: Cash of your start-up
+devs: Developers employees of your start-up
+sales: Sales employees of your start-up
+managers: Managers employees of your start-up
+features: Features developed in your software
 bugs: Bugs in your software
-market: Market share
+startUpId: Start-up id
+marketShare: Market share of the start-up
+employeesCount: Employees of the start-up
 
 OUTPUT
-<devsToHire> <salesToHire> <managersToHire> <debugRate>
+<devsToHire> <salesToHire> <managersToHire> <debugRate> <salesAggressivenessRate>
