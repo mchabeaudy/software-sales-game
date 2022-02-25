@@ -15,50 +15,53 @@
     <h1><span class="icon icon-rules">&nbsp;</span> <span>Rules</span></h1>
 
     <div>
-      <div class="statement-rules-content">During the competition
-        <const>4</const>
-        start-ups will try to get the most market share.<br>
+      <div class="statement-rules-content">During the competition<const>4</const> start-ups will try to get the most market share.<br>
         To sell your software you will have to recruit employees and give them orders.<br>
         <br>
         Your can recruit different types of employees:<br>
         <ul>
-          <li>Developers, developing new features for your software and fixing bugs</li>
+          <li>Developers, developing new features and tests for your software and fixing bugs</li>
           <li>Sellers, selling your software increasing your market share</li>
           <li>Managers, helping you to control other employees so that they perform their task correctly</li>
         </ul>
-        Employees don't work for free, you will have to pay them each turn:
+        <br>
+        <div class="title">Pays rules</div>
+        Each turn your cash increases proportionally to your market share in thousandth<br>
+        Employees don't work for free, you will have to pay them each turn:<br>
         <ul>
           <li>Developers : <const>$10</const> for each</li>
-          <li>Sellers : <const>$10</const> for each, plus <const>$10</const> <b>for each percentage</b> of market share acquired during the previous round</li>
+          <li>Sellers : <const>$10</const> for each</li>
           <li>Managers : <const>$20</const> for each</li>
         </ul>
-        For example, if you have 5 developers, 3 seller, 2 managers, and your market share increased from 5% to 10%.<br>
-        You will spend 5*10 + 3*10 + (10-5)*10 + 2*20 = $170.<br>
-        If you don't have enough cash to pay your employees they will be fired one by one until you have enough money to pay the others, starting by developers, then sellers, then managers.<br>
-        In the previous example if you had only $150 cash 2 developers would be fired to pay the others.<br>
+        For example: 5 developers, 3 seller, 2 managers will cost 5 × 10 + 3 × 10 + 2 × 20 = $120.<br>
+        If you don't have enough cash your employees will be fired one by one until you have enough money, starting by developers, then sellers, then managers.<br>
+        In the previous example if you had only $100 cash 2 developers would be fired.<br>
         <br>
-        Different type of actions can be performed by your employees:
+        <div class="title">Employees actions</div>
+        Different type of actions can be performed by your employees:<br>
         <ul>
-          <li>Developers : they can either work on developing new features either work on fixing existing bugs
-          </li>
+          <li>Developers : they can either work on developing new features either work on fixing existing bugs and developing tests</li>
           <li>Sellers : they can either sell for new client either try to steal clients for other start-ups (harder) </li>
           <li>Managers : manage other employees and determine your recruitment capacity</li>
         </ul>
-        But be careful! If you have less than <const>1</const> manager per <const>4</const> employees (developer or seller) each of them have 50% chance to change their task assignation (for example a developer that was developing new features will decide by himself to debug instead)<br>
+        But be careful! If you have less than <const>1</const> manager per <const>4</const> employees (developer or seller) they might do something else (A developer that was developing new features might decide by himself to debug instead, or to do nothing!)<br>
+        For example if you have 60 employees and 10 managers, 40 employees will follow their order, each of 20 others has:<br/>
+        <ul>
+          <li>34% chance to do the action you intend to</li>
+          <li>33% chance to do a different action</li>
+          <li>33% chance to do nothing</li>
+        </ul>
         <br>
-        Recruitment capacity:<br>
-        Total number of employees that you can recruit in your start-up (excluding managers) is
-        equal to <const>5*managers</const>
+        <div class="title">Recruitment capacity</div>
+        You can recruit or fire <const>1</const> manager each turn, there is no maximum limit<br>
+        You can recruit of fire each turn <const>2 × managers</const> developers plus sellers<br>
+        You can recruit a total of <const>10 × managers</const> employees in your start-up, excluding managers<br>
         <br>
-        Number of employees than you can recruit of fire each turn is equal to <const>1.5*managers</const> <b>rounded down</b><br>
-        Number of managers that you can recruit or fire each turn is equal to 1, there is no maximum
-        limit for total number of your managers in your company<br>
-        <br>
-        Each turn following actions are performed:
+        <div class="title">Chronologie of a turn</div>
+        Each turn following actions are performed:<br>
         <ol>
-          <li>Recruitment : number of employees you have is modified according your input values
-          </li>
-          <li>Pay : Your cash increases proportionally to your market share and all employees receive their pay (including new ones)</li>
+          <li>Recruitment : increasing or decreasing employees</li>
+          <li>Pay : Your cash increases and all employees receive their pay (including new ones)</li>
           <li>Development: new features are developed (and new bugs appear)</li>
           <li>Sales : sellers sell your software, increasing your market share</li>
         </ol>
@@ -97,8 +100,52 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
 
+  </div>
+  <div class="statement-section statement-protocol">
+    <h1><span class="icon icon-protocol">&nbsp;</span> <span>Game input</span></h1>
+    <!-- Protocol block -->
+    <div class="blk">
+      <div class="title">Input for a turn</div>
+      <div class="text">
+        <p><span class="statement-lineno">Line 1 : </span> 10 integers <var>id</var>, <var>playerCount</var>, <var>turn</var>, <var>market</var>, <var>cash</var>, <var>devs</var>, <var>sellers</var>, <var>managers</var>, <var>features</var>, <var>tests</var> and <var>bugs</var> where:</p>
+        <ul>
+          <li><var>id</var> : your player id</li>
+          <li><var>playerCount</var> : number of players</li>
+          <li><var>turn</var> : number of turn since the beginning</li>
+          <li><var>market</var> : market share in thousandth of your start-up, this value represents also your income</li>
+          <li><var>cash</var> : cash of your start-up</li>
+          <li><var>devs</var> : developers employees of your start-up</li>
+          <li><var>sellers</var> : sellers employees of your start-up</li>
+          <li><var>managers</var> : managers employees of your start-up</li>
+          <li><var>features</var> : features developed in your software</li>
+          <li><var>tests</var> : tests developed in your software</li>
+          <li><var>bugs</var> : bugs in your software</li>
+        </ul>
+      </div>
+      <p><span class="statement-lineno"><var>playerCount</var> following lines : </span> one line for each player. First line is for player 0, next one for player 1, etc. Each line contains 3 integers <var>startUpId</var> id of the start-up, <var>marketShare</var> market share of the start-up and <var>employeesCount</var> total employees of the start-up</span> </p>
+    </div>
+    <div class="blk">
+      <div class="title">Output for a turn</div>
+      <div class="text">One line containing 5 integers separated by space <action>devsToHire</action>, <action>sellersToHire</action>, <action>managersToHire</action>, <action>debugDevs</action> and <action>aggressiveSellers</action></div>
+      <p><span>Constraints for output values:</span></p>
+      <ul>
+        <li>-1 ≤ <action>managersToHire</action> ≤ 1</li>
+        <li>|<action>devsToHire</action>| + |<action>sellersToHire</action>| ≤ 2 × <var>managers</var> where |n| means absolute value of n</li>
+        <li>0 ≤ <action>debugDevs</action> ≤ <var>devs</var> + <action>devsToHire</action></li>
+        <li>0 ≤ <action>aggressiveSellers</action> ≤ <var>sellers</var> + <action>sellersToHire</action></li>
+        <li><var>devs</var> + <action>devsToHire</action> + <var>sales</var> + <action>salesToHire</action> ≤ 10 × <var>managers</var> </li>
+      </ul>
+      <action>devsToHire</action> is the number of developers you want to hire for next round, this number can be negative.<br>
+      <action>sellersToHire</action> is the number of sellers you want to hire for next round, this number can be negative.<br>
+      <action>managersToHire</action> is the number of managers you want to hire for next round, this number can be negative.<br>
+      <action>debugDevs</action> is the number of your developers that will be affected to fixe bugs. By fixing a bug it will reduce the bugs number by 1 <b>and</b> increase tests number by 1. If there is no bug in your software it will just increase tests number by 1.<br>
+      Beware tests number can be increased only if a feature already exists or has been developed during the turn<br>
+      <action>aggressiveSellers</action> is the number of your sellers that will try to steal market share from other start-up. Note that it is harder to steal market than take it from free market.<br>
+
+    </div>
   </div>
 </div>

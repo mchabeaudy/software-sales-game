@@ -15,7 +15,7 @@ class Player {
     private int id;
     private int cash;
     private int devs;
-    private int sales;
+    private int sellers;
     private int managers;
     private int features;
     private int bugs;
@@ -69,8 +69,8 @@ class Player {
     public Instruction getInstruction() {
         Instruction instruction = new Instruction();
 
-        double factor = 0.03 * (managers + sales + devs) + 1;
-        double cost = factor * (managers * MANAGER_COST + devs * DEV_COST + sales * SALE_COST);
+        double factor = 0.03 * (managers + sellers + devs) + 1;
+        double cost = factor * (managers * MANAGER_COST + devs * DEV_COST + sellers * SALE_COST);
         int playerCount = marketShares.size();
         int market = marketShares.get(id);
         double revenue = market * (10 * Math.pow(1.05, turn * 1.0 / playerCount));
@@ -81,14 +81,14 @@ class Player {
         } else {
             managerToHire = 0;
         }
-        int available = Math.min(managers * 5 - devs - sales, managers * 2);
+        int available = Math.min(managers * 5 - devs - sellers, managers * 2);
         int devsToHire, salesToHire;
-        if (devs > sales) {
-            salesToHire = Math.max(0, Math.min(50 - sales, available));
+        if (devs > sellers) {
+            salesToHire = Math.max(0, Math.min(50 - sellers, available));
             devsToHire = Math.max(0, Math.min(50 - devs, available - salesToHire));
         } else {
             devsToHire = Math.max(0, Math.min(50 - devs, available));
-            salesToHire = Math.max(0, Math.min(50 - sales, available - devsToHire));
+            salesToHire = Math.max(0, Math.min(50 - sellers, available - devsToHire));
         }
 
         instruction.setDevsToHire(devsToHire);
@@ -181,12 +181,12 @@ class Player {
         this.devs = devs;
     }
 
-    public int getSales() {
-        return sales;
+    public int getSellers() {
+        return sellers;
     }
 
-    public void setSales(int sales) {
-        this.sales = sales;
+    public void setSellers(int sellers) {
+        this.sellers = sellers;
     }
 
     public int getManagers() {

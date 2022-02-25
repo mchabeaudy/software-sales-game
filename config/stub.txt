@@ -7,9 +7,10 @@ read turn:int
 read market:int
 read cash:int
 read devs:int
-read sales:int
+read sellers:int
 read managers:int
 read features:int
+read tests:int
 read bugs:int
 
 loop playerCount read startUpId:int marketShare:int employeesCount:int
@@ -25,13 +26,14 @@ turn: Number of turns since the beginning
 market: Your market share
 cash: Cash of your start-up
 devs: Developers employees of your start-up
-sales: Sales employees of your start-up
+sellers: Sellers employees of your start-up
 managers: Managers employees of your start-up
 features: Features developed in your software
+tests: Tests developed in your software
 bugs: Bugs in your software
 startUpId: Start-up id
 marketShare: Market share of the start-up
 employeesCount: Employees of the start-up
 
 OUTPUT
-<devsToHire> <salesToHire> <managersToHire> <debugRate> <salesAggressivenessRate>
+<devsToHire> <sellerToHire> <managersToHire> <debugDevs> <aggressiveSellers>

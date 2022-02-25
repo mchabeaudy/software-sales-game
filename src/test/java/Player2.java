@@ -3,12 +3,16 @@ import static java.util.stream.IntStream.range;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class Player2 {
 
-    public static final int MANAGER_COST = 10;
-    public static final int DEV_COST = 5;
-    public static final int SALE_COST = 5;
+    public static final int MANAGER_COST = 15;
+    public static final int DEV_COST = 10;
+    public static final int SELLER_COST = 10;
 
     private int id;
     private int cash;
@@ -19,6 +23,7 @@ public class Player2 {
     private int bugs;
     private int turn = 0;
     private int market;
+    private int test;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
 
@@ -36,9 +41,10 @@ public class Player2 {
             player.setMarket(in.nextInt());
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());
-            player.setSales( in.nextInt());
+            player.setSales(in.nextInt());
             player.setManagers(in.nextInt());
             player.setFeatures(in.nextInt());
+            player.setTest(in.nextInt());
             player.setBugs(in.nextInt());
 
             System.err.println(player);
@@ -59,14 +65,14 @@ public class Player2 {
         }
     }
 
+
     public Instruction getInstruction() {
         Instruction instruction = new Instruction();
 
-        double factor = 0.03 * (managers + sales + devs) + 1;
-        double cost = factor * (managers * MANAGER_COST + devs * DEV_COST + sales * SALE_COST);
+        double cost = managers * MANAGER_COST + devs * DEV_COST + sales * SELLER_COST;
         int playerCount = marketShares.size();
         int market = marketShares.get(id);
-        double revenue = market * (10 * Math.pow(1.05, turn * 1.0 / playerCount));
+        double revenue = market * Math.pow(1d / 0.95, turn * 1d / playerCount);
 
         int managerToHire;
         if (cost < 0.8 * revenue || managers < 3) {
@@ -87,13 +93,10 @@ public class Player2 {
         instruction.setDevsToHire(devsToHire);
         instruction.setSalesToHire(salesToHire);
         instruction.setManagersToHire(managerToHire);
-        if (bugs > 10) {
-            instruction.setDebugRate(100);
-        } else {
-            instruction.setDebugRate(20);
-        }
+        instruction.setDebugRate(Math.min(devs, bugs + 1));
+
         if (marketShares.values().stream().mapToInt(Integer::valueOf).sum() > 90) {
-            instruction.setSalesAggressivenessRate(80);
+            instruction.setSalesAggressivenessRate(sales - sales / 10);
         } else {
             instruction.setSalesAggressivenessRate(0);
         }
@@ -101,6 +104,8 @@ public class Player2 {
         return instruction;
     }
 
+    @Getter
+    @Setter
     public static class Instruction {
 
         private int devsToHire;
@@ -109,122 +114,8 @@ public class Player2 {
         private int debugRate;
         private int salesAggressivenessRate;
 
-        public int getDevsToHire() {
-            return devsToHire;
-        }
-
-        public void setDevsToHire(int devsToHire) {
-            this.devsToHire = devsToHire;
-        }
-
-        public int getSalesToHire() {
-            return salesToHire;
-        }
-
-        public void setSalesToHire(int salesToHire) {
-            this.salesToHire = salesToHire;
-        }
-
-        public int getManagersToHire() {
-            return managersToHire;
-        }
-
-        public void setManagersToHire(int managersToHire) {
-            this.managersToHire = managersToHire;
-        }
-
-        public int getDebugRate() {
-            return debugRate;
-        }
-
-        public void setDebugRate(int debugRate) {
-            this.debugRate = debugRate;
-        }
-
-        public int getSalesAggressivenessRate() {
-            return salesAggressivenessRate;
-        }
-
-        public void setSalesAggressivenessRate(int salesAggressivenessRate) {
-            this.salesAggressivenessRate = salesAggressivenessRate;
-        }
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getCash() {
-        return cash;
-    }
-
-    public void setCash(int cash) {
-        this.cash = cash;
-    }
-
-    public int getDevs() {
-        return devs;
-    }
-
-    public void setDevs(int devs) {
-        this.devs = devs;
-    }
-
-    public int getSales() {
-        return sales;
-    }
-
-    public void setSales(int sales) {
-        this.sales = sales;
-    }
-
-    public int getManagers() {
-        return managers;
-    }
-
-    public void setManagers(int managers) {
-        this.managers = managers;
-    }
-
-    public int getFeatures() {
-        return features;
-    }
-
-    public void setFeatures(int features) {
-        this.features = features;
-    }
-
-    public int getBugs() {
-        return bugs;
-    }
-
-    public void setBugs(int bugs) {
-        this.bugs = bugs;
-    }
-
-    public Map<Integer, Integer> getMarketShares() {
-        return marketShares;
-    }
-
-    public int getMarket() {
-        return market;
-    }
-
-    public void setMarket(int market) {
-        this.market = market;
-    }
-
-    public int getTurn() {
-        return turn;
-    }
-
-    public void setTurn(int turn) {
-        this.turn = turn;
-    }
 
     @Override
     public String toString() {

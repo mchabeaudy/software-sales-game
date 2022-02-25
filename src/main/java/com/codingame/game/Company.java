@@ -5,75 +5,42 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class Company {
 
-    public static final int MANAGER_COST = 10;
-    public static final int DEV_COST = 5;
-    public static final int SALE_COST = 5;
+    public static final int MANAGER_COST = 15;
+    public static final int DEV_COST = 10;
+    public static final int SELLER_COST = 10;
 
     private static final double EX = 2.718281828;
 
     private int devs;
-    private int sales;
+    private int sellers;
     private int managers = 1;
     private int cash = 1000;
     private int bugs;
+    private int tests;
     private int newBugs;
-    private int debugRate;
-    private int salesAggressivenessRate;
+    private int debugDevs;
+    private int agressiveSellers;
     private int features;
     private int market;
     private int productQuality;
     private int resolvedBugs;
-    private int score;
-    private int availableFreeMarketShare;
-    private int availableCompetitiveMarket;
+    private double score;
+    private double availableFreeMarketShare;
+    private double availableCompetitiveMarket;
     private Player player;
 
-    public int getDevs() {
-        return devs;
-    }
-
-    public void setDevs(int devs) {
-        this.devs = devs;
-    }
-
-    public int getSales() {
-        return sales;
-    }
-
-    public void setSales(int sales) {
-        this.sales = sales;
-    }
-
-    public int getManagers() {
-        return managers;
-    }
-
-    public void setManagers(int managers) {
-        this.managers = managers;
-    }
-
-    public int getCash() {
-        return cash;
-    }
-
-    public void setCash(int cash) {
-        this.cash = cash;
-    }
 
     public void addCash(int cash) {
         this.cash += cash;
     }
 
-    public int getBugs() {
-        return bugs;
-    }
-
-    public void setBugs(int bugs) {
-        this.bugs = bugs;
-    }
 
     public void addDevs(int devs) {
         this.devs += devs;
@@ -87,146 +54,74 @@ public class Company {
         this.managers += managers;
     }
 
-    public void addSales(int sales) {
-        this.sales += sales;
+    public void addSellers(int sellers) {
+        this.sellers += sellers;
     }
 
-    public int getDebugRate() {
-        return debugRate;
-    }
+    public void payDay(int turn) {
+        addCash((int) (market * Math.pow(1.0 / 0.95, turn)));
 
-    public void setDebugRate(int debugRate) {
-        int variableRate = 0;
-        if (getTotSubordinates() * 0.25 < managers) {
-            variableRate = (int) (100 * Math.random() * 0.6 - 0.3);
+        while (costToPay() > cash) {
+            decreaseEmployee();
         }
-        this.debugRate = Math.min(Math.max(debugRate + variableRate, 0), 100);
+        addCash(-managers * MANAGER_COST);
+        addCash(-sellers * SELLER_COST);
+        addCash(-devs * DEV_COST);
     }
 
-    public Player getPlayer() {
-        return player;
+    private int costToPay() {
+        return (devs + debugDevs) * DEV_COST + (sellers + agressiveSellers) * SELLER_COST + managers * MANAGER_COST;
     }
 
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
-    public int getFeatures() {
-        return features;
-    }
-
-    public void setFeatures(int features) {
-        this.features = features;
-    }
-
-    public int getMarket() {
-        return market;
-    }
-
-    public void setMarket(int market) {
-        this.market = market;
-    }
-
-    public void payEmployees(int turn, int playerCount) {
-        // Pays
-        addCash((int) (market * (10 * Math.pow(1.05, turn * 1.0 / playerCount))));
-
-        double factor = 0.03 * (managers + sales + devs) + 1;
-
-        // Pays managers
-        while (cash - managers * (MANAGER_COST * factor) < 0) {
+    private void decreaseEmployee() {
+        if (devs > 0) {
+            devs--;
+        } else if (debugDevs > 0) {
+            debugDevs--;
+        } else if (sellers > 0) {
+            sellers--;
+        } else if (agressiveSellers > 0) {
+            agressiveSellers--;
+        } else {
             managers--;
         }
-        addCash((int) (-managers * MANAGER_COST * factor));
-
-        // Pays sales
-        while (cash - sales * SALE_COST * factor < 0) {
-            sales--;
-        }
-        addCash((int) (-sales * SALE_COST * factor));
-
-        // Pays devs
-        while (cash - devs * DEV_COST * factor < 0) {
-            devs--;
-        }
-        addCash((int) (-devs * DEV_COST * factor));
     }
 
-    public void developFeatures() {
-        int featureDevs = (int) (devs * (0.01 * (100 - debugRate)));
-        int debugDevs = devs - featureDevs;
-        features += featureDevs;
+    private double chanceToBug() {
+        return Math.pow(EX, -1.0 * tests / features);
+    }
+
+    public void developFeatures(Random random) {
+        // develop features
+        features += devs;
+        // resolve bugs
         int nbBugs = bugs;
         bugs = Math.max(0, bugs - debugDevs);
         resolvedBugs += nbBugs - bugs;
-        productQuality = (int) (100 * (1 - Math.pow(EX, -0.03 * resolvedBugs)));
-    }
-
-    public int getProductQuality() {
-        return productQuality;
-    }
-
-    public void setProductQuality(int productQuality) {
-        this.productQuality = productQuality;
-    }
-
-    public int getResolvedBugs() {
-        return resolvedBugs;
-    }
-
-    public void setResolvedBugs(int resolvedBugs) {
-        this.resolvedBugs = resolvedBugs;
+        if (features > 0) {
+            tests += debugDevs;
+        }
+        // increase bugs
+        newBugs = (int) Math.round(chanceToBug() * features * random.nextDouble());
+        bugs += newBugs;
     }
 
     public void addMarket(int marketToAdd) {
         market += marketToAdd;
     }
 
-    public void buildScore(double featuresAverage) {
-        int featureScore = (int) Math.min(50.0 / featuresAverage * features, 100);
-        score = Math.max(0, featureScore + (int) (getRobustness() * 100) - (bugs - newBugs) * 3 - newBugs * 6);
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
+    public void evaluateScore() {
+        score = 1.0 * features / Math.max(1.0, 1.0 * (bugs * 3 + resolvedBugs));
     }
 
     public void resetAvailableMarket(double salesAverage) {
-        availableFreeMarketShare =
-                salesAverage == 0 ? 0 : (int) ((100 - salesAggressivenessRate) * 0.1 * sales / salesAverage);
-        availableCompetitiveMarket =
-                salesAverage == 0 ? 0 : (int) ((salesAggressivenessRate) * 0.02 * sales / salesAverage);
     }
 
-
-    public void increaseBugs(Random random) {
-        newBugs = (int) (random.nextDouble() * getRobustness() * features);
-        bugs += newBugs;
-    }
 
     public double getRobustness() {
         return 0 == features ? 2.0 : Math.min((double) resolvedBugs / (double) features, 2.0) * 0.5;
     }
 
-    public int getSalesAggressivenessRate() {
-        return salesAggressivenessRate;
-    }
-
-    public void setSalesAggressivenessRate(int salesAggressivenessRate, Random random) {
-        int variableRate = 0;
-        if (getTotSubordinates() * 0.25 < managers) {
-            variableRate = (int) (100 * random.nextDouble() * 0.6 - 0.3);
-        }
-        this.salesAggressivenessRate = Math.min(Math.max(salesAggressivenessRate + variableRate, 0), 100);
-    }
-
-    public int getTotSubordinates() {
-        return devs + sales;
-    }
 
     public void takeFreeMarket(int remainingFreeMarket, AtomicInteger takenFreeMarket, double scoreAverage) {
         double sa = scoreAverage == 0 ? 1 : 1.0 / scoreAverage;
@@ -239,7 +134,7 @@ public class Company {
     public void takeCompetitiveMarket(Collection<Company> companies, double scoreAverage) {
         Company weakest = companies.stream()
                 .filter(c -> c.getMarket() != 0 && !c.equals(this) && c.getMarket() > 10)
-                .min(Comparator.comparingInt(Company::getScore))
+                .min(Comparator.comparingDouble(Company::getScore))
                 .orElse(null);
         if (Objects.nonNull(weakest)) {
             double sa = scoreAverage == 0 ? 1 : 1.0 / scoreAverage;
@@ -249,11 +144,49 @@ public class Company {
         }
     }
 
-    public int getAvailableCompetitiveMarket() {
-        return availableCompetitiveMarket;
-    }
 
     public int getTotalEmployees() {
-        return devs + sales + managers;
+        return devs + debugDevs + sellers + agressiveSellers + managers;
+    }
+
+
+    public int getTotalDevs() {
+        return devs + debugDevs;
+    }
+
+    public int getTotalSellers() {
+        return sellers + agressiveSellers;
+    }
+
+    public void applyManagerRule(Random random) {
+        int k = getTotalDevs() + getTotalSellers();
+        while (k > 4 * managers) {
+            double d = random.nextDouble() * 4;
+            if (d < 1 && devs > 0) {
+                devs--;
+                debugDevs++;
+                k--;
+            } else if (d < 2 && debugDevs > 0) {
+                devs++;
+                debugDevs--;
+                k--;
+            } else if (d < 3 && sellers > 0) {
+                sellers--;
+                agressiveSellers++;
+                k--;
+            } else if (agressiveSellers > 0) {
+                sellers++;
+                agressiveSellers--;
+                k--;
+            } else {
+                // should never happen
+                k--;
+            }
+        }
+    }
+
+    public void resetAvailableMarkets(int totalSales) {
+        availableFreeMarketShare = 1.0 * sellers / totalSales;
+        availableCompetitiveMarket = 1.0 * agressiveSellers / totalSales;
     }
 }
