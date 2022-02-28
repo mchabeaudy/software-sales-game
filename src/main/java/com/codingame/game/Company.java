@@ -1,10 +1,18 @@
 package com.codingame.game;
 
+import static com.codingame.game.Constants.DEV_COST;
+import static com.codingame.game.Constants.MANAGER_COST;
+import static com.codingame.game.Constants.SELLER_COST;
+import static com.codingame.game.Constants.getProb;
+import static java.util.stream.IntStream.range;
+
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,50 +20,47 @@ import lombok.Setter;
 @Setter
 public class Company {
 
-    public static final int MANAGER_COST = 15;
-    public static final int DEV_COST = 10;
-    public static final int SELLER_COST = 10;
 
-    private static final double EX = 2.718281828;
+    private int completedFeatures;
+    private Map<Integer, Integer> featuresInProgress = new HashMap<>();
 
-    private int devs;
-    private int sellers;
+    private int featureDevs;
+    private int maintenanceDevs;
+    private int inactiveDevs;
+    private int freeMarketSellers;
+    private int competitiveMarketSellers;
+    private int inactiveSellers;
     private int managers = 1;
     private int cash = 1000;
     private int bugs;
     private int tests;
     private int newBugs;
-    private int debugDevs;
-    private int agressiveSellers;
-    private int features;
     private int market;
     private int productQuality;
     private int resolvedBugs;
-    private double score;
-    private double availableFreeMarketShare;
-    private double availableCompetitiveMarket;
+    private double reputation;
     private Player player;
 
+    public Company(Player player) {
+        this.player = player;
+        featuresInProgress.put(1, 0);
+        featuresInProgress.put(2, 0);
+        featuresInProgress.put(3, 0);
+        featuresInProgress.put(4, 0);
+        featuresInProgress.put(5, 0);
+        featuresInProgress.put(6, 0);
+        featuresInProgress.put(7, 0);
+        featuresInProgress.put(8, 0);
+        featuresInProgress.put(9, 0);
+        featuresInProgress.put(10, 0);
+    }
 
     public void addCash(int cash) {
         this.cash += cash;
     }
 
-
-    public void addDevs(int devs) {
-        this.devs += devs;
-    }
-
-    public void addBugs(int bugs) {
-        this.bugs += bugs;
-    }
-
     public void addManagers(int managers) {
         this.managers += managers;
-    }
-
-    public void addSellers(int sellers) {
-        this.sellers += sellers;
     }
 
     public void payDay(int turn) {
@@ -65,128 +70,167 @@ public class Company {
             decreaseEmployee();
         }
         addCash(-managers * MANAGER_COST);
-        addCash(-sellers * SELLER_COST);
-        addCash(-devs * DEV_COST);
+        addCash(-freeMarketSellers * SELLER_COST);
+        addCash(-featureDevs * DEV_COST);
     }
 
     private int costToPay() {
-        return (devs + debugDevs) * DEV_COST + (sellers + agressiveSellers) * SELLER_COST + managers * MANAGER_COST;
+        return (featureDevs + maintenanceDevs) * DEV_COST + (freeMarketSellers + competitiveMarketSellers) * SELLER_COST
+                + managers * MANAGER_COST;
     }
 
     private void decreaseEmployee() {
-        if (devs > 0) {
-            devs--;
-        } else if (debugDevs > 0) {
-            debugDevs--;
-        } else if (sellers > 0) {
-            sellers--;
-        } else if (agressiveSellers > 0) {
-            agressiveSellers--;
+        if (featureDevs > 0) {
+            featureDevs--;
+        } else if (maintenanceDevs > 0) {
+            maintenanceDevs--;
+        } else if (freeMarketSellers > 0) {
+            freeMarketSellers--;
+        } else if (competitiveMarketSellers > 0) {
+            competitiveMarketSellers--;
         } else {
             managers--;
         }
     }
 
-    private double chanceToBug() {
-        return Math.pow(EX, -1.0 * tests / features);
-    }
 
     public void developFeatures(Random random) {
         // develop features
-        features += devs;
+        Map<Integer, Integer> newFeatures = new HashMap<>();
+        newFeatures.put(1, featureDevs);
+        newFeatures.put(2, featuresInProgress.get(1));
+        newFeatures.put(3, featuresInProgress.get(2));
+        newFeatures.put(4, featuresInProgress.get(3));
+        newFeatures.put(5, featuresInProgress.get(4));
+        newFeatures.put(6, featuresInProgress.get(5));
+        newFeatures.put(7, featuresInProgress.get(6));
+        newFeatures.put(8, featuresInProgress.get(7));
+        newFeatures.put(9, featuresInProgress.get(8));
+        newFeatures.put(10, featuresInProgress.get(9));
+        completedFeatures += featuresInProgress.get(10);
+        featuresInProgress = newFeatures;
+
         // resolve bugs
         int nbBugs = bugs;
-        bugs = Math.max(0, bugs - debugDevs);
+        bugs = Math.max(0, bugs - maintenanceDevs);
         resolvedBugs += nbBugs - bugs;
-        if (features > 0) {
-            tests += debugDevs;
+        if (getTotalFeatures() > 0) {
+            tests += maintenanceDevs;
         }
+
         // increase bugs
-        newBugs = (int) Math.round(chanceToBug() * features * random.nextDouble());
-        bugs += newBugs;
+        int totFeatures = getTotalFeatures();
+        if (totFeatures > 0) {
+            double m = Math.max(0, 1d - 0.25 * tests / totFeatures);
+            newBugs = 0;
+            featuresInProgress.forEach((time, featuresCount) -> {
+                double chanceToBug = getProb(time) * m;
+                newBugs += (int) range(0, featuresCount)
+                        .filter(i -> random.nextInt(1000) < chanceToBug)
+                        .count();
+            });
+            bugs += newBugs;
+        }
+    }
+
+    public int getTotalFeatures() {
+        return completedFeatures + getFeaturesInProgressCount();
     }
 
     public void addMarket(int marketToAdd) {
         market += marketToAdd;
     }
 
-    public void evaluateScore() {
-        score = 1.0 * features / Math.max(1.0, 1.0 * (bugs * 3 + resolvedBugs));
-    }
-
-    public void resetAvailableMarket(double salesAverage) {
-    }
-
-
-    public double getRobustness() {
-        return 0 == features ? 2.0 : Math.min((double) resolvedBugs / (double) features, 2.0) * 0.5;
-    }
-
-
-    public void takeFreeMarket(int remainingFreeMarket, AtomicInteger takenFreeMarket, double scoreAverage) {
-        double sa = scoreAverage == 0 ? 1 : 1.0 / scoreAverage;
-        int marketToAdd = Math.min(remainingFreeMarket - takenFreeMarket.get(),
-                (int) (availableFreeMarketShare * score * sa));
-        takenFreeMarket.getAndAdd(marketToAdd);
-        market += marketToAdd;
-    }
-
-    public void takeCompetitiveMarket(Collection<Company> companies, double scoreAverage) {
-        Company weakest = companies.stream()
-                .filter(c -> c.getMarket() != 0 && !c.equals(this) && c.getMarket() > 10)
-                .min(Comparator.comparingDouble(Company::getScore))
-                .orElse(null);
-        if (Objects.nonNull(weakest)) {
-            double sa = scoreAverage == 0 ? 1 : 1.0 / scoreAverage;
-            int marketToTake = Math.min(1, (int) (availableCompetitiveMarket * score * sa));
-            market += marketToTake;
-            weakest.setMarket(weakest.getMarket() - marketToTake);
-        }
+    public void evaluateReputation() {
+        reputation = Math.max(0.1, 1.0 * getTotalFeatures() / Math.max(1.0, 1.0 * (bugs * 3 + resolvedBugs)));
     }
 
 
     public int getTotalEmployees() {
-        return devs + debugDevs + sellers + agressiveSellers + managers;
+        return featureDevs + maintenanceDevs + freeMarketSellers + competitiveMarketSellers + managers;
     }
 
 
     public int getTotalDevs() {
-        return devs + debugDevs;
+        return featureDevs + maintenanceDevs + inactiveDevs;
     }
 
     public int getTotalSellers() {
-        return sellers + agressiveSellers;
+        return freeMarketSellers + competitiveMarketSellers + inactiveSellers;
     }
 
     public void applyManagerRule(Random random) {
         int k = getTotalDevs() + getTotalSellers();
         while (k > 4 * managers) {
-            double d = random.nextDouble() * 4;
-            if (d < 1 && devs > 0) {
-                devs--;
-                debugDevs++;
-                k--;
-            } else if (d < 2 && debugDevs > 0) {
-                devs++;
-                debugDevs--;
-                k--;
-            } else if (d < 3 && sellers > 0) {
-                sellers--;
-                agressiveSellers++;
-                k--;
-            } else if (agressiveSellers > 0) {
-                sellers++;
-                agressiveSellers--;
-                k--;
-            } else {
-                // should never happen
-                k--;
+            k--;
+            List<Consumer<Integer>> rules = new ArrayList<>();
+            if (featureDevs > 0) {
+                rules.add(this::devRule);
             }
+            if (maintenanceDevs > 0) {
+                rules.add(this::maintenanceDevRule);
+            }
+            if (freeMarketSellers > 0) {
+                rules.add(this::sellerRule);
+            }
+            if (competitiveMarketSellers > 0) {
+                rules.add(this::aggressiveSellerRule);
+            }
+            int d = random.nextInt(rules.size());
+            rules.get(d).accept(random.nextInt(3));
         }
     }
 
-    public void resetAvailableMarkets(int totalSales) {
-        availableFreeMarketShare = 1.0 * sellers / totalSales;
-        availableCompetitiveMarket = 1.0 * agressiveSellers / totalSales;
+
+    private void devRule(int i) {
+        if (i == 0) {
+            featureDevs--;
+            maintenanceDevs++;
+        } else if (i == 1) {
+            featureDevs--;
+            inactiveDevs++;
+        }
+    }
+
+    private void maintenanceDevRule(int i) {
+        if (i == 0) {
+            maintenanceDevs--;
+            featureDevs++;
+        } else if (i == 1) {
+            maintenanceDevs--;
+            inactiveDevs++;
+        }
+    }
+
+    private void sellerRule(int i) {
+        if (i == 0) {
+            freeMarketSellers--;
+            competitiveMarketSellers++;
+        } else if (i == 1) {
+            freeMarketSellers--;
+            inactiveSellers++;
+        }
+    }
+
+    private void aggressiveSellerRule(int i) {
+        if (i == 0) {
+            competitiveMarketSellers--;
+            freeMarketSellers++;
+        } else if (i == 1) {
+            competitiveMarketSellers--;
+            inactiveSellers++;
+        }
+    }
+
+    public int getFeaturesInProgressCount() {
+        return featuresInProgress.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    public void takeFreeMarket(double averages, int freeMarketAvailableForSale) {
+        addMarket((int) (reputation * freeMarketSellers * getTotalFeatures() * freeMarketAvailableForSale / averages));
+    }
+
+    public double getCompetitiveScore(){
+        return reputation*competitiveMarketSellers*getTotalFeatures();
     }
 }

@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 public class Player2 {
 
-    public static final int MANAGER_COST = 15;
+    public static final int MANAGER_COST = 20;
     public static final int DEV_COST = 10;
     public static final int SELLER_COST = 10;
 
@@ -93,9 +93,9 @@ public class Player2 {
         instruction.setDevsToHire(devsToHire);
         instruction.setSalesToHire(salesToHire);
         instruction.setManagersToHire(managerToHire);
-        instruction.setDebugRate(Math.min(devs, bugs + 1));
+        instruction.setDebugRate(Math.max(Math.min(devs, bugs + 1), Math.min(devs, 4 * features - test)));
 
-        if (marketShares.values().stream().mapToInt(Integer::valueOf).sum() > 90) {
+        if (marketShares.values().stream().mapToInt(Integer::valueOf).sum() > 900) {
             instruction.setSalesAggressivenessRate(sales - sales / 10);
         } else {
             instruction.setSalesAggressivenessRate(0);
