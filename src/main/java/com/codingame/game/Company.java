@@ -7,7 +7,6 @@ import static com.codingame.game.Constants.getProb;
 import static java.util.stream.IntStream.range;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +35,9 @@ public class Company {
     private int tests;
     private int newBugs;
     private int market;
-    private int productQuality;
     private int resolvedBugs;
-    private double reputation;
+    private int reputation;
+    private Integer targetId;
     private Player player;
 
     public Company(Player player) {
@@ -142,7 +141,7 @@ public class Company {
     }
 
     public void evaluateReputation() {
-        reputation = Math.max(0.1, 1.0 * getTotalFeatures() / Math.max(1.0, 1.0 * (bugs * 3 + resolvedBugs)));
+        reputation = Math.max(1, (int) (100 * (1d * getTotalFeatures() / Math.max(1d, 1d * bugs * 3 + resolvedBugs))));
     }
 
 
@@ -174,7 +173,7 @@ public class Company {
                 rules.add(this::sellerRule);
             }
             if (competitiveMarketSellers > 0) {
-                rules.add(this::aggressiveSellerRule);
+                rules.add(this::competitiveSellerRule);
             }
             int d = random.nextInt(rules.size());
             rules.get(d).accept(random.nextInt(3));
@@ -212,7 +211,7 @@ public class Company {
         }
     }
 
-    private void aggressiveSellerRule(int i) {
+    private void competitiveSellerRule(int i) {
         if (i == 0) {
             competitiveMarketSellers--;
             freeMarketSellers++;
@@ -226,11 +225,41 @@ public class Company {
         return featuresInProgress.values().stream().mapToInt(Integer::intValue).sum();
     }
 
-    public void takeFreeMarket(double averages, int freeMarketAvailableForSale) {
-        addMarket((int) (reputation * freeMarketSellers * getTotalFeatures() * freeMarketAvailableForSale / averages));
+    public void takeUnfilledMarket(double totalScores, int freeMarketAvailableForSale) {
+        addMarket(
+                (int) (reputation * freeMarketSellers * getTotalFeatures() * freeMarketAvailableForSale / totalScores));
     }
 
-    public double getCompetitiveScore(){
-        return reputation*competitiveMarketSellers*getTotalFeatures();
+    public int getCompetitiveScore() {
+        return reputation * competitiveMarketSellers * getTotalFeatures();
+    }
+
+    public void takeMarketFrom(Company company, int factor) {
+        if (getCompetitiveScore() > company.getCompetitiveScore()) {
+
+            int marketToTake =
+                    Math.min((int) Math.min(8d * factor,
+                                    4d * factor * getCompetitiveScore() / company.getCompetitiveScore()),
+                            company.getMarket());
+            addMarket(marketToTake);
+            company.addMarket(-marketToTake);
+        }
+    }
+
+
+    public void fight(Company comp) {
+        if (getCompetitiveScore() > comp.getCompetitiveScore() && getCompetitiveMarketSellers() > 0) {
+            int marketToTake = Math.min((int) Math.min(8, 4d * getCompetitiveScore() / comp.getCompetitiveScore()),
+                    comp.getMarket());
+            addMarket(marketToTake);
+            comp.addMarket(-marketToTake);
+        } else if (comp.getCompetitiveScore() > getCompetitiveScore()
+                && comp.getCompetitiveMarketSellers() > 0) {
+            int marketToTake =
+                    Math.min((int) Math.max(8, 4d * comp.getCompetitiveScore() / getCompetitiveScore()),
+                            getMarket());
+            comp.addMarket(marketToTake);
+            addMarket(-marketToTake);
+        }
     }
 }

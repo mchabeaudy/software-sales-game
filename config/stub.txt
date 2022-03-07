@@ -3,8 +3,8 @@ gameloop
 read id:int
 read playerCount:int
 read turn:int
+read incomeFactor:float
 
-read market:int
 read cash:int
 read devs:int
 read sellers:int
@@ -13,7 +13,7 @@ read features:int
 read tests:int
 read bugs:int
 
-loop playerCount read startUpId:int marketShare:int employeesCount:int
+loop playerCount read startUpId:int marketShare:int reputation:int
 write 0 0 0 0 0
 
 STATEMENT
@@ -23,17 +23,17 @@ INPUT
 id: Your player id
 playerCount: Number of players
 turn: Number of turns since the beginning
-market: Your market share
+incomeFactor: Income factor
 cash: Cash of your start-up
-devs: Developers employees of your start-up
-sellers: Sellers employees of your start-up
-managers: Managers employees of your start-up
-features: Features developed in your software
+devCount: Developers employees of your start-up
+sellerCount: Sellers employees of your start-up
+managerCount: Managers employees of your start-up
+featureCount: Features developed in your software
 tests: Tests developed in your software
 bugs: Bugs in your software
 startUpId: Start-up id
-marketShare: Market share of the start-up
-employeesCount: Employees of the start-up
+marketShare: Market share of the start-up in thousands
+reputation: Reputation of the start-up
 
 OUTPUT
-<devsToHire> <sellerToHire> <managersToHire> <debugDevs> <aggressiveSellers>
+<devsToHire> <sellerToHire> <managersToHire> <maintenanceDevs> <competitiveSellers> <targetId>

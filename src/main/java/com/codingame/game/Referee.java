@@ -11,7 +11,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 public class Referee extends AbstractReferee {
@@ -36,11 +38,6 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void gameTurn(int turn) {
-        if (turn == gameManager.getPlayerCount() * 100 - 1) {
-            gameManager.getPlayers().forEach(p -> p.setScore(companies.get(p).getMarket()));
-            endGame();
-        }
-
         Player player = gameManager.getPlayer(turn % gameManager.getPlayerCount());
 
         sendInput(player, turn);
@@ -49,21 +46,24 @@ public class Referee extends AbstractReferee {
 
         try {
             Company company = companies.get(player);
-            Action action = player.getAction(company);
+            Action action = player.getAction(company,
+                    companies.keySet().stream().map(Player::getPlayerId).collect(Collectors.toSet()));
             gameManager.addToGameSummary(
                     String.format("Player %s played (%d %d %d %d %d)", action.getPlayer().getNicknameToken(),
                             action.getDevsToRecruit(), action.getSellersToRecruit(), action.getManagersToRecruit(),
-                            action.getDebugDevs(), action.getAggressiveSellers()));
+                            action.getMaintenanceDevs(), action.getCompetitiveSellers()));
             // devs
             int newTotalDevs = company.getTotalDevs() + action.getDevsToRecruit();
-            company.setFeatureDevs(newTotalDevs - action.getDebugDevs());
-            company.setMaintenanceDevs(action.getDebugDevs());
+            company.setFeatureDevs(newTotalDevs - action.getMaintenanceDevs());
+            company.setMaintenanceDevs(action.getMaintenanceDevs());
             company.setInactiveDevs(0);
             // sellers
             int newTotalSellers = company.getTotalSellers() + action.getSellersToRecruit();
-            company.setFreeMarketSellers(newTotalSellers - action.getAggressiveSellers());
-            company.setCompetitiveMarketSellers(action.getAggressiveSellers());
+            company.setFreeMarketSellers(newTotalSellers - action.getCompetitiveSellers());
+            company.setCompetitiveMarketSellers(action.getCompetitiveSellers());
             company.setInactiveSellers(0);
+            // others
+            company.setTargetId(action.getTargetId());
             company.addManagers(action.getManagersToRecruit());
             company.applyManagerRule(random);
 
@@ -81,6 +81,11 @@ public class Referee extends AbstractReferee {
             player.setScore(-1);
             endGame();
         }
+        if (turn == gameManager.getPlayerCount() * 100) {
+            gameManager.getPlayers().forEach(p -> p.setScore(companies.get(p).getMarket()));
+            endGame();
+        }
+
     }
 
     private void calculateState(int turn) {
@@ -93,6 +98,10 @@ public class Referee extends AbstractReferee {
             company.evaluateReputation();
         });
         evolveMarket();
+        if (companies.values().stream().anyMatch(c -> c.getMarket() >= 800)) {
+            gameManager.getPlayers().forEach(p -> p.setScore(companies.get(p).getMarket()));
+            endGame();
+        }
     }
 
     private void evolveMarket() {
@@ -103,45 +112,40 @@ public class Referee extends AbstractReferee {
 
         double featuresAverage = comps.stream().mapToInt(Company::getTotalFeatures).average().orElse(0);
         if (featuresAverage > 0) {
-            double reputationAverage = comps.stream().mapToDouble(Company::getReputation).average().orElse(0);
+            double reputationSum = comps.stream().mapToInt(Company::getReputation).sum();
 
             // Free market
             double freeMarketSellersAverage =
                     comps.stream().mapToInt(Company::getFreeMarketSellers).average().orElse(0);
             int takenMarket = comps.stream().mapToInt(Company::getMarket).sum();
             if (freeMarketSellersAverage > 0) {
-                int freeMarketAvailableForSale = Math.min(50 * gameManager.getPlayerCount(), 1000 - takenMarket);
-                double averages = featuresAverage * freeMarketSellersAverage * reputationAverage;
-                comps.forEach(c -> c.takeFreeMarket(averages, freeMarketAvailableForSale));
+                int freeMarketAvailableForSale = Math.min(40 * gameManager.getPlayerCount(), 1000 - takenMarket);
+                double averages = featuresAverage * freeMarketSellersAverage * reputationSum;
+                comps.forEach(c -> c.takeUnfilledMarket(averages, freeMarketAvailableForSale));
             }
 
             // Competitive market
             double competitiveMarketSellersAverage =
                     comps.stream().mapToInt(Company::getCompetitiveMarketSellers).average().orElse(0);
-            Collections.shuffle(comps);
             if (competitiveMarketSellersAverage > 0) {
-                range(0, comps.size() - 1).forEach(compId1 ->
-                        range(compId1 + 1, comps.size()).forEach(compId2 ->
-                                fight(comps.get(compId1), comps.get(compId2)))
-                );
-            }
-        }
-    }
+                // competitive market with target
+                List<Company> compsWithTarget = comps.stream()
+                        .filter(c -> c.getCompetitiveScore() > 0 && Objects.nonNull(c.getTargetId()))
+                        .unordered()
+                        .collect(Collectors.toList());
+                Collections.shuffle(compsWithTarget);
+                compsWithTarget.forEach(comp -> comp.takeMarketFrom(comps.stream()
+                        .filter(c -> c.getTargetId().equals(c.getPlayer().getPlayerId()))
+                        .findAny()
+                        .get(), comps.size() - 1));
 
-    private void fight(Company comp1, Company comp2) {
-        if (comp1.getCompetitiveScore() > comp2.getCompetitiveScore() && comp1.getCompetitiveMarketSellers() > 0) {
-            int marketToTake =
-                    Math.min((int) Math.min(10, 5d * comp1.getCompetitiveScore() / comp2.getCompetitiveScore()),
-                            comp2.getMarket());
-            comp1.addMarket(marketToTake);
-            comp2.addMarket(-marketToTake);
-        } else if (comp2.getCompetitiveScore() > comp1.getCompetitiveScore()
-                && comp2.getCompetitiveMarketSellers() > 0) {
-            int marketToTake =
-                    Math.min((int) Math.max(10, 5d * comp2.getCompetitiveScore() / comp1.getCompetitiveScore()),
-                            comp1.getMarket());
-            comp2.addMarket(marketToTake);
-            comp1.addMarket(-marketToTake);
+                // competitive market without target
+                List<Company> compsWithoutTarget = comps.stream()
+                        .filter(c -> c.getCompetitiveScore() > 0 && Objects.isNull(c.getTargetId()))
+                        .collect(Collectors.toList());
+                Collections.shuffle(compsWithoutTarget);
+                compsWithoutTarget.forEach(comp -> comps.forEach(comp::fight));
+            }
         }
     }
 
@@ -150,9 +154,9 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(Integer.toString(player.getPlayerId()));
         player.sendInputLine(Integer.toString(playerCount));
         player.sendInputLine(Integer.toString(turn / playerCount));
+        player.sendInputLine(Float.toString((float) Math.pow(1.0 / 0.95, turn)));
 
         Company company = companies.get(player);
-        player.sendInputLine(Integer.toString(company.getMarket()));
         player.sendInputLine(Integer.toString(company.getCash()));
         player.sendInputLine(Integer.toString(company.getTotalDevs()));
         player.sendInputLine(Integer.toString(company.getTotalSellers()));
@@ -164,7 +168,7 @@ public class Referee extends AbstractReferee {
             Company comp = companies.get(gameManager.getPlayer(i));
             player.sendInputLine(Integer.toString(i));
             player.sendInputLine(Integer.toString(comp.getMarket()));
-            player.sendInputLine(Integer.toString(comp.getFeatureDevs() + comp.getTotalEmployees()));
+            player.sendInputLine(Integer.toString(comp.getReputation()));
         });
     }
 

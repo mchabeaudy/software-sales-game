@@ -1,4 +1,3 @@
-package com.codingame.game.boss;
 
 import static java.util.stream.IntStream.range;
 
@@ -6,11 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-class Player {
+public class Boss {
 
-    public static final int MANAGER_COST = 10;
-    public static final int DEV_COST = 5;
-    public static final int SALE_COST = 5;
+    public static final int MANAGER_COST = 20;
+    public static final int DEV_COST = 10;
+    public static final int SELLER_COST = 10;
 
     private int id;
     private int cash;
@@ -19,141 +18,139 @@ class Player {
     private int managers;
     private int features;
     private int bugs;
+    private int tests;
     private int turn = 0;
+    private int market;
+    private float incomeFactor;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
 
-        Player2 player = new Player2();
+        Boss player = new Boss();
 
         while (true) {
-            int playerId = in.nextInt();
+
+            player.setId(in.nextInt());
             int playerCount = in.nextInt();
-            int cash = in.nextInt();
-            int devs = in.nextInt();
-            int sales = in.nextInt();
-            int managers = in.nextInt();
-            int features = in.nextInt();
-            int bugs = in.nextInt();
+            player.setTurn(in.nextInt());
+            player.setIncomeFactor(in.nextFloat());
 
-            player.setId(playerId);
-            player.setCash(cash);
-            player.setDevs(devs);
-            player.setSales(sales);
-            player.setManagers(managers);
-            player.setFeatures(features);
-            player.setBugs(bugs);
-            player.turn++;
+            player.setCash(in.nextInt());
+            player.setDevs(in.nextInt());
+            player.setSellers(in.nextInt());
+            player.setManagers(in.nextInt());
+            player.setFeatures(in.nextInt());
+            player.setTests(in.nextInt());
+            player.setBugs(in.nextInt());
 
-            System.err.println("bugs: " + bugs);
-            System.err.println("cash: " + cash);
-            System.err.println("devs: " + devs);
-            System.err.println("sales: " + sales);
-            System.err.println("managers: " + managers);
-            range(0, playerCount).forEach(id -> {
+            System.err.println(player);
+
+            range(0, playerCount).forEach(k -> {
+                int startUpId = in.nextInt();
                 int marketShare = in.nextInt();
-                player.getMarketShares().put(id, marketShare);
-                System.err.println("id: " + id + "   market share:" + marketShare);
+                int reputation = in.nextInt();
+                player.getMarketShares().put(startUpId, marketShare);
+                System.err.println("id: " + startUpId + "   market share:" + marketShare);
             });
 
             Instruction instruction = player.getInstruction();
             System.out.println(
-                    String.format("%d %d %d %d %d", instruction.getDevsToHire(), instruction.getSalesToHire(),
-                            instruction.getManagersToHire(), instruction.getDebugRate(),
-                            instruction.getSalesAggressivenessRate()));
+                    String.format("%d %d %d %d %d", instruction.getDevsToRecruit(), instruction.getSellersToRecruit(),
+                            instruction.getManagersToRecruit(), instruction.getMaintenanceDevs(),
+                            instruction.getCompetitiveSellers()));
         }
     }
 
     public Instruction getInstruction() {
         Instruction instruction = new Instruction();
 
-        double factor = 0.03 * (managers + sellers + devs) + 1;
-        double cost = factor * (managers * MANAGER_COST + devs * DEV_COST + sellers * SALE_COST);
+        int devsToRecruit = 0;
+        int sellersToRecruit = 0;
+        int managersToRecruit = 0;
+        double cost = getCost(managersToRecruit, devsToRecruit, sellersToRecruit);
         int playerCount = marketShares.size();
         int market = marketShares.get(id);
-        double revenue = market * (10 * Math.pow(1.05, turn * 1.0 / playerCount));
+        double revenue = (int) (market * incomeFactor);
 
-        int managerToHire;
-        if (cost < 0.8 * revenue || managers < 3) {
-            managerToHire = 1;
-        } else {
-            managerToHire = 0;
+        if (managers < 5 || ((devs + sellers) / 4 > managers)) {
+            managersToRecruit = 1;
         }
-        int available = Math.min(managers * 5 - devs - sellers, managers * 2);
-        int devsToHire, salesToHire;
-        if (devs > sellers) {
-            salesToHire = Math.max(0, Math.min(50 - sellers, available));
-            devsToHire = Math.max(0, Math.min(50 - devs, available - salesToHire));
-        } else {
-            devsToHire = Math.max(0, Math.min(50 - devs, available));
-            salesToHire = Math.max(0, Math.min(50 - sellers, available - devsToHire));
+        int available = Math.min(managers * 10 - devs - sellers, managers * 2);
+
+        while ((getCost(managersToRecruit, devsToRecruit, sellersToRecruit) < revenue - DEV_COST || devs + sellers < 20)
+                && available != 0) {
+            available--;
+            if (devsToRecruit + devs > sellersToRecruit + sellers) {
+                sellersToRecruit++;
+            } else {
+                devsToRecruit++;
+            }
         }
 
-        instruction.setDevsToHire(devsToHire);
-        instruction.setSalesToHire(salesToHire);
-        instruction.setManagersToHire(managerToHire);
-        if (bugs > 10) {
-            instruction.setDebugRate(100);
-        } else {
-            instruction.setDebugRate(20);
-        }
-        if (marketShares.values().stream().mapToInt(Integer::valueOf).sum() > 90) {
-            instruction.setSalesAggressivenessRate(80);
-        } else {
-            instruction.setSalesAggressivenessRate(0);
-        }
+        instruction.setDevsToRecruit(devsToRecruit);
+        instruction.setSellersToRecruit(sellersToRecruit);
+        instruction.setManagersToRecruit(managersToRecruit);
+        int maintenanceDevs = (devs + devsToRecruit) / 2;
+        int competitiveSellers = (sellers + sellersToRecruit) / 2;
+        instruction.setMaintenanceDevs(maintenanceDevs);
+        instruction.setCompetitiveSellers(competitiveSellers);
 
         return instruction;
     }
 
+    private int getCost(int managersToRecruit, int devsToRecruit, int sellersToRecruit) {
+        return (managers + managersToRecruit) * MANAGER_COST + (devs + devsToRecruit) * DEV_COST
+                + (sellers + sellersToRecruit) * SELLER_COST;
+    }
+
     public static class Instruction {
 
-        private int devsToHire;
-        private int salesToHire;
-        private int managersToHire;
-        private int debugRate;
-        private int salesAggressivenessRate;
+        private int devsToRecruit;
+        private int sellersToRecruit;
+        private int managersToRecruit;
+        private int maintenanceDevs;
+        private int competitiveSellers;
 
-        public int getDevsToHire() {
-            return devsToHire;
+        public int getDevsToRecruit() {
+            return devsToRecruit;
         }
 
-        public void setDevsToHire(int devsToHire) {
-            this.devsToHire = devsToHire;
+        public void setDevsToRecruit(int devsToRecruit) {
+            this.devsToRecruit = devsToRecruit;
         }
 
-        public int getSalesToHire() {
-            return salesToHire;
+        public int getSellersToRecruit() {
+            return sellersToRecruit;
         }
 
-        public void setSalesToHire(int salesToHire) {
-            this.salesToHire = salesToHire;
+        public void setSellersToRecruit(int sellersToRecruit) {
+            this.sellersToRecruit = sellersToRecruit;
         }
 
-        public int getManagersToHire() {
-            return managersToHire;
+        public int getManagersToRecruit() {
+            return managersToRecruit;
         }
 
-        public void setManagersToHire(int managersToHire) {
-            this.managersToHire = managersToHire;
+        public void setManagersToRecruit(int managersToRecruit) {
+            this.managersToRecruit = managersToRecruit;
         }
 
-        public int getDebugRate() {
-            return debugRate;
+        public int getMaintenanceDevs() {
+            return maintenanceDevs;
         }
 
-        public void setDebugRate(int debugRate) {
-            this.debugRate = debugRate;
+        public void setMaintenanceDevs(int maintenanceDevs) {
+            this.maintenanceDevs = maintenanceDevs;
         }
 
-        public int getSalesAggressivenessRate() {
-            return salesAggressivenessRate;
+        public int getCompetitiveSellers() {
+            return competitiveSellers;
         }
 
-        public void setSalesAggressivenessRate(int salesAggressivenessRate) {
-            this.salesAggressivenessRate = salesAggressivenessRate;
+        public void setCompetitiveSellers(int competitiveSellers) {
+            this.competitiveSellers = competitiveSellers;
         }
     }
 
@@ -213,8 +210,52 @@ class Player {
         this.bugs = bugs;
     }
 
+    public int getTests() {
+        return tests;
+    }
+
+    public void setTests(int tests) {
+        this.tests = tests;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
+    }
+
+    public int getMarket() {
+        return market;
+    }
+
+    public void setMarket(int market) {
+        this.market = market;
+    }
+
     public Map<Integer, Integer> getMarketShares() {
         return marketShares;
     }
 
+    public float getIncomeFactor() {
+        return incomeFactor;
+    }
+
+    public void setIncomeFactor(float incomeFactor) {
+        this.incomeFactor = incomeFactor;
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "cash=" + cash +
+                ", devs=" + devs +
+                ", sellers=" + sellers +
+                ", managers=" + managers +
+                ", features=" + features +
+                ", bugs=" + bugs +
+                ", market=" + market +
+                '}';
+    }
 }
