@@ -27,12 +27,12 @@ public class Action {
         }
         ActionBuilder builder = Action.builder();
         builder.devsToRecruit(getIntOrThrowWithMessage(args[0], "Devs to recruit must be an integer"));
-        builder.sellersToRecruit(getIntOrThrowWithMessage(args[1],"Sellers to recruit must be an integer"));
+        builder.sellersToRecruit(getIntOrThrowWithMessage(args[1], "Sellers to recruit must be an integer"));
         builder.managersToRecruit(getIntOrThrowWithMessage(args[2], "Managers to recruit must be an integer"));
         builder.maintenanceDevs(getIntOrThrowWithMessage(args[3], "Maintenance devs must be an integer"));
         builder.competitiveSellers(getIntOrThrowWithMessage(args[4], "Competitive sellers must be an integer"));
         if (args.length == 6) {
-            builder.targetId(getIntOrThrowWithMessage(args[5],"Target id must be an integer"));
+            builder.targetId(getIntOrThrowWithMessage(args[5], "Target id must be an integer"));
         }
         builder.player(company.getPlayer());
 
@@ -46,7 +46,7 @@ public class Action {
         if (devsToRecruit + company.getFeatureDevs() < 0) {
             throw new InvalidAction("Impossible to fire more devs than you have");
         }
-        if (sellersToRecruit + company.getFreeMarketSellers() < 0) {
+        if (sellersToRecruit + company.getUnfilledMarketSellers() < 0) {
             throw new InvalidAction("Impossible to fire more sellers than you have");
         }
         if (managersToRecruit + company.getManagers() < 0) {
@@ -70,7 +70,7 @@ public class Action {
             throw new InvalidAction("Competitive sellers must be between 0 and " + totalSellers);
         }
 
-        if (Objects.nonNull(targetId) && (targetId == player.getPlayerId() || !playerIds.contains(targetId))){
+        if (Objects.nonNull(targetId) && (targetId == player.getPlayerId() || !playerIds.contains(targetId))) {
             throw new InvalidAction("Invalid target player id");
         }
 
@@ -83,4 +83,10 @@ public class Action {
         return parseInt(value);
     }
 
+    public String displayValue() {
+        return Objects.isNull(targetId) ? String.format("(%d %d %d %d %d)", devsToRecruit, sellersToRecruit,
+                managersToRecruit, maintenanceDevs, competitiveSellers)
+                : String.format("(%d %d %d %d %d %d)", devsToRecruit, sellersToRecruit,
+                        managersToRecruit, maintenanceDevs, competitiveSellers, targetId);
+    }
 }

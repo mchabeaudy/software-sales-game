@@ -1,11 +1,10 @@
-
 import static java.util.stream.IntStream.range;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class Boss {
+class Player {
 
     public static final int MANAGER_COST = 20;
     public static final int DEV_COST = 10;
@@ -24,11 +23,12 @@ public class Boss {
     private float incomeFactor;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
+    private final Map<Integer, Integer> reputations = new HashMap<>();
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
 
-        Boss player = new Boss();
+        Player player = new Player();
 
         while (true) {
 
@@ -45,15 +45,14 @@ public class Boss {
             player.setTests(in.nextInt());
             player.setBugs(in.nextInt());
 
-            System.err.println(player);
-
             range(0, playerCount).forEach(k -> {
                 int startUpId = in.nextInt();
                 int marketShare = in.nextInt();
                 int reputation = in.nextInt();
                 player.getMarketShares().put(startUpId, marketShare);
-                System.err.println("id: " + startUpId + "   market share:" + marketShare);
+                player.getReputations().put(startUpId, reputation);
             });
+            System.err.println(player);
 
             Instruction instruction = player.getInstruction();
             System.out.println(
@@ -69,8 +68,6 @@ public class Boss {
         int devsToRecruit = 0;
         int sellersToRecruit = 0;
         int managersToRecruit = 0;
-        double cost = getCost(managersToRecruit, devsToRecruit, sellersToRecruit);
-        int playerCount = marketShares.size();
         int market = marketShares.get(id);
         double revenue = (int) (market * incomeFactor);
 
@@ -246,16 +243,26 @@ public class Boss {
         this.incomeFactor = incomeFactor;
     }
 
+    public Map<Integer, Integer> getReputations() {
+        return reputations;
+    }
+
     @Override
     public String toString() {
-        return "Player{" +
-                "cash=" + cash +
+        return "Player1{" +
+                "id=" + id +
+                ", cash=" + cash +
                 ", devs=" + devs +
                 ", sellers=" + sellers +
                 ", managers=" + managers +
                 ", features=" + features +
                 ", bugs=" + bugs +
+                ", tests=" + tests +
+                ", turn=" + turn +
                 ", market=" + market +
+                ", incomeFactor=" + incomeFactor +
+                ", marketShares=" + marketShares +
+                ", reputations=" + reputations +
                 '}';
     }
 }

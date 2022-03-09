@@ -67,7 +67,11 @@
         <br>
         <b>Pay</b><br>
         <br>
-        Each turn your cash increases proportionally to your market share. <const>cash = cash + marketShare in thousandth</const><br>
+        Each turn your cash increases proportionally to your market share and a factor. <const>cash = cash + marketShare × factor</const><br>
+        Where <const>marketShare</const> is your market share in thousandth<br>
+        The represent arrival of new client each start-up will have their market share reduced to 95% of their initial value.<br>
+        However your income stays the same, factor is calculated by : <const>factor = (1 / 0.95)^(turn - 1)</const><br>
+        <br>
         Employees don't work for free, you will have to pay them each turn:<br>
         <ul>
           <li>Developers : <const>$10</const> for each</li>
@@ -97,7 +101,7 @@
         <br>
         <b>Sales</b><br>
         <br>
-        Market is always growing, all start-ups have their market reducing by 5%.<br>
+        Market is always growing, all start-ups have their market reduced to 95% of their initial value.<br>
         <b>Phase 1 - Unfilled market:</b><br>
         Your start-up will get an unfilledMarketScore calculated by:<br>
         <const>unfilledMarketScore = unfilledMarketSellers × reputation × features</const><br>
@@ -113,9 +117,6 @@
         If reputationA is greater than reputationB<br>
         Then start-up A will steal market share from start-up B calculated by:<br>
         <const>stolenMarketShare = min(0.8%, 0.4% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
-        Optional rule:<br>
-        Instead of fighting everyone you can decide to focus on only one competitor in this case stolenMarket will be calculated by:<br>
-        <const>stolenMarketShare = (playerCount - 1) × min(0.8%, 0.4% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
         <br>
 
         <!-- Victory conditions -->
@@ -195,7 +196,7 @@
     </div>
     <div class="blk">
       <div class="title">Output for a turn</div>
-      <div class="text">One line containing 5 or 6 integers separated by space <action>devsToHire</action>, <action>sellersToHire</action>, <action>managersToHire</action>, <action>maintenanceDevs</action>, <action>competitiveSellers</action> and <action>targetId</action></div>
+      <div class="text">One line containing 5 or 6 integers separated by space <action>devsToHire</action>, <action>sellersToHire</action>, <action>managersToHire</action>, <action>maintenanceDevs</action> and <action>competitiveSellers</action></div>
       <p><span>Constraints for output values:</span></p>
       <ul>
         <li>-1 ≤ <action>managersToHire</action> ≤ 1</li>
@@ -210,7 +211,6 @@
       <action>maintenanceDevs</action>: number of your developers affected to fix bugs <b>and</b> increase tests<br>
       Beware tests number can be increased only if a feature already exists or has been developed during the turn<br>
       <action>competitiveSellers</action>: sellers that will try to steal market share from competitors<br>
-      <action>targetId</action> must be a player id (different from your id)<br>
     </div>
   </div>
 </div>

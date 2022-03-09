@@ -67,7 +67,11 @@
         <br>
         <b>Pay</b><br>
         <br>
-        Each turn your cash increases proportionally to your market share. <const>cash = cash + marketShare in thousandth</const><br>
+        Each turn your cash increases proportionally to your market share and a factor. <const>cash = cash + marketShare × factor</const><br>
+        Where <const>marketShare</const> is your market share in thousandth<br>
+        The represent arrival of new client each start-up will have their market share reduced to 95% of their initial value.<br>
+        However your income stays the same, factor is calculated by : <const>factor = (1 / 0.95)^(turn - 1)</const><br>
+        <br>
         Employees don't work for free, you will have to pay them each turn:<br>
         <ul>
           <li>Developers : <const>$10</const> for each</li>
@@ -97,7 +101,7 @@
         <br>
         <b>Sales</b><br>
         <br>
-        Market is always growing, all start-ups have their market reducing by 5%.<br>
+        Market is always growing, all start-ups have their market reduced to 95% of their initial value.<br>
         <b>Phase 1 - Unfilled market:</b><br>
         Your start-up will get an unfilledMarketScore calculated by:<br>
         <const>unfilledMarketScore = unfilledMarketSellers × reputation × features</const><br>
@@ -113,7 +117,7 @@
         If reputationA is greater than reputationB<br>
         Then start-up A will steal market share from start-up B calculated by:<br>
         <const>stolenMarketShare = min(0.8%, 0.4% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
-        Optional rule:<br>
+        <b>New rule!</b><br>
         Instead of fighting everyone you can decide to focus on only one competitor in this case stolenMarket will be calculated by:<br>
         <const>stolenMarketShare = (playerCount - 1) × min(0.8%, 0.4% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
         <br>

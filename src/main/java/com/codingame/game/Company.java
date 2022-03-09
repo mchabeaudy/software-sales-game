@@ -4,6 +4,8 @@ import static com.codingame.game.Constants.DEV_COST;
 import static com.codingame.game.Constants.MANAGER_COST;
 import static com.codingame.game.Constants.SELLER_COST;
 import static com.codingame.game.Constants.getProb;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.stream.IntStream.range;
 
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ public class Company {
     private int featureDevs;
     private int maintenanceDevs;
     private int inactiveDevs;
-    private int freeMarketSellers;
+    private int unfilledMarketSellers;
     private int competitiveMarketSellers;
     private int inactiveSellers;
     private int managers = 1;
@@ -37,6 +39,9 @@ public class Company {
     private int market;
     private int resolvedBugs;
     private int reputation;
+    private int competitiveScore;
+    private int unfilledMarketScore;
+    private int totalFeatures;
     private Integer targetId;
     private Player player;
 
@@ -63,19 +68,18 @@ public class Company {
     }
 
     public void payDay(int turn) {
-        addCash((int) (market * Math.pow(1.0 / 0.95, turn)));
+        addCash((int) (market * Math.pow(1.0 / 0.95, (turn - 1))));
 
         while (costToPay() > cash) {
             decreaseEmployee();
         }
         addCash(-managers * MANAGER_COST);
-        addCash(-freeMarketSellers * SELLER_COST);
+        addCash(-unfilledMarketSellers * SELLER_COST);
         addCash(-featureDevs * DEV_COST);
     }
 
     private int costToPay() {
-        return (featureDevs + maintenanceDevs) * DEV_COST + (freeMarketSellers + competitiveMarketSellers) * SELLER_COST
-                + managers * MANAGER_COST;
+        return getTotalDevs() * DEV_COST + getTotalSellers() * SELLER_COST + managers * MANAGER_COST;
     }
 
     private void decreaseEmployee() {
@@ -83,8 +87,8 @@ public class Company {
             featureDevs--;
         } else if (maintenanceDevs > 0) {
             maintenanceDevs--;
-        } else if (freeMarketSellers > 0) {
-            freeMarketSellers--;
+        } else if (unfilledMarketSellers > 0) {
+            unfilledMarketSellers--;
         } else if (competitiveMarketSellers > 0) {
             competitiveMarketSellers--;
         } else {
@@ -111,7 +115,7 @@ public class Company {
 
         // resolve bugs
         int nbBugs = bugs;
-        bugs = Math.max(0, bugs - maintenanceDevs);
+        bugs = max(0, bugs - maintenanceDevs);
         resolvedBugs += nbBugs - bugs;
         if (getTotalFeatures() > 0) {
             tests += maintenanceDevs;
@@ -120,7 +124,7 @@ public class Company {
         // increase bugs
         int totFeatures = getTotalFeatures();
         if (totFeatures > 0) {
-            double m = Math.max(0, 1d - 0.25 * tests / totFeatures);
+            double m = max(0, 1d - 0.25 * tests / totFeatures);
             newBugs = 0;
             featuresInProgress.forEach((time, featuresCount) -> {
                 double chanceToBug = getProb(time) * m;
@@ -132,30 +136,21 @@ public class Company {
         }
     }
 
-    public int getTotalFeatures() {
-        return completedFeatures + getFeaturesInProgressCount();
-    }
 
     public void addMarket(int marketToAdd) {
         market += marketToAdd;
     }
 
     public void evaluateReputation() {
-        reputation = Math.max(1, (int) (100 * (1d * getTotalFeatures() / Math.max(1d, 1d * bugs * 3 + resolvedBugs))));
+        reputation = max(1, (int) (100d * getTotalFeatures() / max(1d, 3d * bugs + resolvedBugs)));
     }
-
-
-    public int getTotalEmployees() {
-        return featureDevs + maintenanceDevs + freeMarketSellers + competitiveMarketSellers + managers;
-    }
-
 
     public int getTotalDevs() {
         return featureDevs + maintenanceDevs + inactiveDevs;
     }
 
     public int getTotalSellers() {
-        return freeMarketSellers + competitiveMarketSellers + inactiveSellers;
+        return unfilledMarketSellers + competitiveMarketSellers + inactiveSellers;
     }
 
     public void applyManagerRule(Random random) {
@@ -169,14 +164,16 @@ public class Company {
             if (maintenanceDevs > 0) {
                 rules.add(this::maintenanceDevRule);
             }
-            if (freeMarketSellers > 0) {
+            if (unfilledMarketSellers > 0) {
                 rules.add(this::sellerRule);
             }
             if (competitiveMarketSellers > 0) {
                 rules.add(this::competitiveSellerRule);
             }
-            int d = random.nextInt(rules.size());
-            rules.get(d).accept(random.nextInt(3));
+            if (!rules.isEmpty()) {
+                int d = random.nextInt(rules.size());
+                rules.get(d).accept(random.nextInt(3));
+            }
         }
     }
 
@@ -203,10 +200,10 @@ public class Company {
 
     private void sellerRule(int i) {
         if (i == 0) {
-            freeMarketSellers--;
+            unfilledMarketSellers--;
             competitiveMarketSellers++;
         } else if (i == 1) {
-            freeMarketSellers--;
+            unfilledMarketSellers--;
             inactiveSellers++;
         }
     }
@@ -214,7 +211,7 @@ public class Company {
     private void competitiveSellerRule(int i) {
         if (i == 0) {
             competitiveMarketSellers--;
-            freeMarketSellers++;
+            unfilledMarketSellers++;
         } else if (i == 1) {
             competitiveMarketSellers--;
             inactiveSellers++;
@@ -227,39 +224,29 @@ public class Company {
 
     public void takeUnfilledMarket(double totalScores, int freeMarketAvailableForSale) {
         addMarket(
-                (int) (reputation * freeMarketSellers * getTotalFeatures() * freeMarketAvailableForSale / totalScores));
+                (int) (reputation * unfilledMarketSellers * getTotalFeatures() * freeMarketAvailableForSale
+                        / totalScores));
     }
 
-    public int getCompetitiveScore() {
-        return reputation * competitiveMarketSellers * getTotalFeatures();
+    public void takeMarketFrom(Company competitor) {
+        takeMarketFrom(competitor, 1);
     }
 
-    public void takeMarketFrom(Company company, int factor) {
-        if (getCompetitiveScore() > company.getCompetitiveScore()) {
-
-            int marketToTake =
-                    Math.min((int) Math.min(8d * factor,
-                                    4d * factor * getCompetitiveScore() / company.getCompetitiveScore()),
-                            company.getMarket());
+    public void takeMarketFrom(Company competitor, int factor) {
+        if (competitiveScore > competitor.getCompetitiveScore()) {
+            int requestMarket = competitor.getCompetitiveScore() == 0 ? 8 * factor
+                    : min(8 * factor, 4 * factor * competitiveScore / competitor.getCompetitiveScore());
+            int marketToTake = min(requestMarket, competitor.getMarket());
             addMarket(marketToTake);
-            company.addMarket(-marketToTake);
+            competitor.addMarket(-marketToTake);
         }
     }
 
-
-    public void fight(Company comp) {
-        if (getCompetitiveScore() > comp.getCompetitiveScore() && getCompetitiveMarketSellers() > 0) {
-            int marketToTake = Math.min((int) Math.min(8, 4d * getCompetitiveScore() / comp.getCompetitiveScore()),
-                    comp.getMarket());
-            addMarket(marketToTake);
-            comp.addMarket(-marketToTake);
-        } else if (comp.getCompetitiveScore() > getCompetitiveScore()
-                && comp.getCompetitiveMarketSellers() > 0) {
-            int marketToTake =
-                    Math.min((int) Math.max(8, 4d * comp.getCompetitiveScore() / getCompetitiveScore()),
-                            getMarket());
-            comp.addMarket(marketToTake);
-            addMarket(-marketToTake);
-        }
+    public void prepareForSales() {
+        totalFeatures = completedFeatures + getFeaturesInProgressCount();
+        competitiveScore = reputation * competitiveMarketSellers * totalFeatures;
+        unfilledMarketScore = reputation * unfilledMarketSellers * totalFeatures;
+        market = (int) Math.round(0.95 * market);
     }
+
 }
