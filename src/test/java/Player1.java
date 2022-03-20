@@ -35,7 +35,6 @@ public class Player1 {
             int playerCount = in.nextInt();
             player.setTurn(in.nextInt());
             player.setIncomeFactor(in.nextFloat());
-
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());
             player.setSellers(in.nextInt());

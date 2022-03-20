@@ -1,4 +1,5 @@
 import { GraphicEntityModule } from './entity-module/GraphicEntityModule.js';
+import { EndScreenModule } from './endscreen-module/EndScreenModule.js';
 
 export const demo = {
   playerCount: 2,
@@ -97,5 +98,6 @@ export const playerColors = [
 ];
 
 export const modules = [
-	GraphicEntityModule
+	GraphicEntityModule,
+  EndScreenModule
 ];

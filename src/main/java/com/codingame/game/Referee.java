@@ -2,10 +2,14 @@ package com.codingame.game;
 
 import static java.util.stream.IntStream.range;
 
+import com.codingame.gameengine.core.AbstractMultiplayerPlayer;
 import com.codingame.gameengine.core.AbstractPlayer.TimeoutException;
 import com.codingame.gameengine.core.AbstractReferee;
 import com.codingame.gameengine.core.GameManager;
 import com.codingame.gameengine.core.MultiplayerGameManager;
+import com.codingame.gameengine.module.endscreen.EndScreenModule;
+import com.codingame.gameengine.module.entities.GraphicEntityModule;
+import com.codingame.gameengine.module.entities.Text;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,15 +24,27 @@ public class Referee extends AbstractReferee {
 
     @Inject
     private MultiplayerGameManager<Player> gameManager;
+    @Inject
+    private GraphicEntityModule graphicEntityModule;
+    @Inject
+    private EndScreenModule endScreenModule;
+    private static final int[] COLORS = new int[] {0xc43bb4, 0x3b46c4, 0x3bc462, 0xbfc43b};
+
+
     private final List<Company> companies = new ArrayList<>();
     private final Map<Integer, Company> companiesById = new HashMap<>();
     private final Random random = new Random();
     private static final int MAX_TURN = 100;
+    private final Map<Integer, Text> scores = new HashMap<>();
+
 
     @Override
     public void init() {
         gameManager.getPlayerCount();
         gameManager.setMaxTurns(MAX_TURN * gameManager.getPlayerCount());
+
+        gameManager.setFrameDuration(600);
+
         range(0, gameManager.getPlayerCount())
                 .forEach(i -> {
                     Player p = gameManager.getPlayer(i);
@@ -36,6 +52,13 @@ public class Referee extends AbstractReferee {
                     Company c = new Company(p);
                     companies.add(c);
                     companiesById.put(i, c);
+                    Text text = graphicEntityModule.createText("Player " + p.getPlayerId())
+                            .setFontFamily("Lato")
+                            .setFontSize(100)
+                            .setX(10)
+                            .setY(20 + 110 * p.getPlayerId())
+                            .setFillColor(COLORS[p.getPlayerId()]);
+                    scores.put(p.getPlayerId(), text);
                 });
         random.setSeed(gameManager.getSeed());
     }
@@ -97,10 +120,21 @@ public class Referee extends AbstractReferee {
             company.evaluateReputation();
         });
         evolveMarket();
+        printResult();
         if (companies.stream().anyMatch(c -> c.getMarket() >= 800)) {
             gameManager.getPlayers().forEach(p -> p.setScore(companiesById.get(p.getPlayerId()).getMarket()));
             endGame();
         }
+    }
+
+    private void printResult() {
+        gameManager.getPlayers()
+                .forEach(p ->{
+                    Text text = scores.get(p.getPlayerId());
+                    text.setVisible(false);
+                    text.setText("Player " + p.getPlayerId() + " : " + p.getScore());
+                    graphicEntityModule.commitEntityState(0, text);
+                });
     }
 
     private void evolveMarket() {
@@ -171,5 +205,11 @@ public class Referee extends AbstractReferee {
     private void endGame() {
         gameManager.getPlayers().forEach(p -> p.setScore(companiesById.get(p.getPlayerId()).getMarket()));
         gameManager.endGame();
+    }
+
+    @Override
+    public void onEnd() {
+        endScreenModule.setScores(
+                gameManager.getPlayers().stream().mapToInt(AbstractMultiplayerPlayer::getScore).toArray());
     }
 }

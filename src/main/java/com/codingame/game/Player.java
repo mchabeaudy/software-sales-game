@@ -1,9 +1,11 @@
 package com.codingame.game;
 
 import com.codingame.gameengine.core.AbstractMultiplayerPlayer;
+import com.codingame.gameengine.module.entities.Group;
 import java.util.Collection;
 
 public class Player extends AbstractMultiplayerPlayer {
+    public Group hud;
 
     private int playerId;
 
