@@ -191,7 +191,7 @@ public class Referee extends AbstractReferee {
                         .collect(Collectors.toList());
                 Collections.shuffle(compsWithTarget);
                 compsWithTarget.forEach(comp -> comp.takeMarketFrom(companies.stream()
-                        .filter(c -> c.getTargetId().equals(c.getPlayer().getPlayerId()))
+                        .filter(c -> comp.getTargetId().equals(c.getPlayer().getPlayerId()))
                         .findAny()
                         .get(), companies.size() - 1));
 
