@@ -172,7 +172,7 @@ public class Company {
             }
             if (!rules.isEmpty()) {
                 int d = random.nextInt(rules.size());
-                rules.get(d).accept(random.nextInt(3));
+                rules.get(d).accept(random.nextInt(4));
             }
         }
     }
@@ -182,7 +182,7 @@ public class Company {
         if (i == 0) {
             featureDevs--;
             maintenanceDevs++;
-        } else if (i == 1) {
+        } else if (i > 1) {
             featureDevs--;
             inactiveDevs++;
         }
@@ -192,7 +192,7 @@ public class Company {
         if (i == 0) {
             maintenanceDevs--;
             featureDevs++;
-        } else if (i == 1) {
+        } else if (i > 1) {
             maintenanceDevs--;
             inactiveDevs++;
         }
@@ -202,7 +202,7 @@ public class Company {
         if (i == 0) {
             unfilledMarketSellers--;
             competitiveMarketSellers++;
-        } else if (i == 1) {
+        } else if (i > 1) {
             unfilledMarketSellers--;
             inactiveSellers++;
         }
@@ -212,7 +212,7 @@ public class Company {
         if (i == 0) {
             competitiveMarketSellers--;
             unfilledMarketSellers++;
-        } else if (i == 1) {
+        } else if (i > 1) {
             competitiveMarketSellers--;
             inactiveSellers++;
         }
@@ -223,9 +223,8 @@ public class Company {
     }
 
     public void takeUnfilledMarket(double totalScores, int freeMarketAvailableForSale) {
-        addMarket(
-                (int) (reputation * unfilledMarketSellers * getTotalFeatures() * freeMarketAvailableForSale
-                        / totalScores));
+        addMarket((int) (reputation * unfilledMarketSellers * getTotalFeatures() * freeMarketAvailableForSale
+                / totalScores));
     }
 
     public void takeMarketFrom(Company competitor) {
@@ -234,8 +233,8 @@ public class Company {
 
     public void takeMarketFrom(Company competitor, int factor) {
         if (competitiveScore > competitor.getCompetitiveScore()) {
-            int requestMarket = competitor.getCompetitiveScore() == 0 ? 8 * factor
-                    : min(8 * factor, 4 * factor * competitiveScore / competitor.getCompetitiveScore());
+            int requestMarket = competitor.getCompetitiveScore() == 0 ? 10 * factor
+                    : min(10 * factor, 5 * factor * competitiveScore / competitor.getCompetitiveScore());
             int marketToTake = min(requestMarket, competitor.getMarket());
             addMarket(marketToTake);
             competitor.addMarket(-marketToTake);

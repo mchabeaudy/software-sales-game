@@ -1,0 +1,231 @@
+<div class="statement-body">
+
+  <!-- GOAL -->
+  <div class="statement-section statement-goal">
+    <h1><span class="icon icon-goal">&nbsp;</span> <span>Goal</span></h1>
+
+    <div class="statement-goal-content">You have been chosen to lead a start-up that sells a
+      software. The goal is to get the most market share before the time runs out, but beware the
+      competition may be tough!
+    </div>
+  </div>
+  <!-- RULES -->
+  <div class="statement-section statement-rules">
+    <h1><span class="icon icon-rules">&nbsp;</span> <span>Rules</span></h1>
+
+    <div>
+      <div class="statement-rules-content">
+        During the competition <const>4</const> start-ups will try to get the most market share.<br>
+        To sell your software you will have to recruit employees and give them orders.<br>
+        The game stands for 100 turns unless a start-up reach 80% market share before and win.<br>
+        <br>
+        <br>
+        <b>Chronology</b><br>
+        <br>
+        Each turn following actions are performed:<br>
+        <ol>
+          <li>Recruitment : increasing or decreasing employees</li>
+          <li>Pay : Your cash increases and all employees receive their pay (including new ones)</li>
+          <li>Development: new features are developed (and new bugs appear)</li>
+          <li>Sales : sellers sell your software, increasing your market share</li>
+        </ol>
+        <br>
+        <b>Recruitment</b><br>
+        <br>
+        Your can recruit different types of employees: <const>Developers</const>,
+        developing new features and maintaining for your software, <const>Sellers</const>, selling
+        your software increasing your market share and <const>Managers</const>, managing other
+        employees so that they perform their task correctly.<br>
+        There are limitations, each turn you can:<br>
+        <ul>
+          <li>Recruit or fire maximum 1 manager</li>
+          <li>Recruit devs and sellers knowing that <const>devsToRecruit + sellersToRecruit ≤ 2 × totalManagersOfYourStartUp</const> </li>
+          <li>Your total employees count must stay under <const>10 × totalManagersOfYourStartUp</const>. Where
+            employees count is your total number of developers and sellers</li>
+        </ul>
+        Beware! If you have more than 4 employees (dev of seller) for 1 manager it will be hard to
+        control your employees (see advanced rule)<br>
+        <br>
+        <b>Pay</b><br>
+        <br>
+        Each turn, first your cash increases proportionally to your market share, your income will
+        be given in input. Second, employees don't work for free, you will have to pay them:<br>
+        <ul>
+          <li>Developers : <const>$10</const> for each</li>
+          <li>Sellers : <const>$10</const> for each</li>
+          <li>Managers : <const>$20</const> for each</li>
+        </ul>
+        Beware! If you don't have enough cash, your employees will be fired one by one until you
+        have enough money to pay them, starting by developers, then sellers, then managers.<br>
+        <br>
+        <b>Development</b><br>
+        <br>
+        During this phase you will have to choose wisely the proportion of developers assigned to
+        development and maintenance.<br>
+        <const>features</const> increase by the number of developers affected to development<br>
+        <const>bugs</const> count decrease by the number of developers affected to maintenance <b>and</b> <const>tests</const> increase by the same number<br>
+        <br>
+        New bugs appear! Indeed, for the next <const>9 rounds</const> after a feature has been
+        developed it has a chance to produce a bug (formula in advanced rules)<br>
+        <br>
+        Note: tests will always increase by the number of developers affected to maintenance, event if there is no bug.<br>
+        <br>
+        <b>Sales</b><br>
+        <br>
+        First of all, you have to know that your start-up has a <const>reputation</const> (formula
+        in advanced rules). The higher is your reputation, the easier it will be for you to sell.<br>
+        Market is always growing, each turn all start-ups have their market share reduced to 95% of
+        their initial value to represent arrival of new clients.<br>
+        <br>
+        <b>Phase 1 - Unfilled market:</b><br>
+        Your <const>unfilledMarketScore</const> is calculated (formula in advanced rules) then your
+        market share will increase by:<br>
+        <const>availableUnfilledMarket × unfilledMarkerScore / totalUnfilledMarketScore</const><br>
+        Where availableUnfilledMarket is the minimum between <const>3% × playerCount</const> and the
+        remaining unfilled market<br>
+        <br>
+        <b>Phase 2 - Competitive market</b><br>
+        <br>
+        Your <const>competitiveMarketScore</const> is calculated (formula in advanced rules). Then
+        all start-ups will fight in a random order as following:<br>
+        If reputation of start-up A is greater than reputation of start-up B then start-up A will
+        steal market share from start-up B calculated by:<br>
+        stolenMarketShare = minimum between <const>1%</const> and <const>0.5% × competitiveMarketScoreA / competitiveMarketScoreB)</const><br>
+        <br>
+        <b>Optional rule</b><br>
+        Instead of fighting everyone you can decide to focus on only one competitor in this case
+        stolenMarket will be calculated by (if your reputation is greater):<br>
+        stolenMarketShare = minimum between <const>competitorsCount × 1%</const> and
+        <const>competitorsCount × 0.5% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
+        <br>
+
+        <!-- Victory conditions -->
+
+        <div class="statement-victory-conditions">
+          <div class="icon victory">&nbsp;</div>
+
+          <div class="blk">
+            <div class="title">Victory conditions</div>
+
+            <div class="text">
+              <ul style="padding-bottom: 0; margin-bottom: 0;">
+                <li>You reach 80% market share.</li>
+                <li>You have the most market share after 100 turns.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <!-- Lose conditions -->
+
+        <div class="statement-lose-conditions">
+          <div class="icon lose">&nbsp;</div>
+
+          <div class="blk">
+            <div class="title">Lose conditions</div>
+
+            <div class="text">
+              <ul style="padding-bottom: 0; margin-bottom: 0;">
+                <li>Your program input not well formatted.</li>
+                <li>Your program input is invalid.</li>
+                <li>An other start up reach 80% market share.</li>
+                <li>Your program doesn't provide an input.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="statement-section statement-expertrules">
+          <h1><span class="icon icon-expertrules">&nbsp;</span> <span>Advanced rules</span></h1>
+          <div class="statement-expert-rules-content">
+            To work well, ratio between employees and managers should be <const>1</const> manager per <const>4</const> employees.<br>
+            Employees outside this ratio may change their affectation by:<br>
+            <ul>
+              <li>doing the action you intend to - 25% chance</li>
+              <li>doing a different action - 25% chance (devs will switch from features to maintenance, sellers from unfilled market to competitive market)</li>
+              <li>doing nothing - 50% chance</li>
+            </ul>
+            <br>
+            <b>Formulas</b><br>
+            <const>Pbug(turn) = e^(-0.3 × turn) × max(0, 1 - 0.25 * tests / features)</const><br>
+            Note : If you have 4 times more tests than features you can't have bugs anymore.<br>
+            e^(-0.3 × t) values:<br>
+            <ul>
+              <li>t = 1 : 0.740</li>
+              <li>t = 2 : 0.549</li>
+              <li>t = 3 : 0.407</li>
+              <li>t = 4 : 0.301</li>
+              <li>t = 5 : 0.223</li>
+              <li>t = 6 : 0.165</li>
+              <li>t = 7 : 0.122</li>
+              <li>t = 8 : 0.091</li>
+              <li>t = 9 : 0.067</li>
+            </ul>
+            <br>
+            <const>reputation = 100 × features / (existingBugs × 3 + fixedBugs)</const><br>
+            Where <const>existingBugs</const> is remaining unfixed bugs in your application and
+            <const>fixedBugs</const> is total bugs count you have already fixed (Yes, even fixed a
+            bug will damage you reputation forever).<br>
+            <br>
+            <const>unfilledMarketScore = unfilledMarketSellers × reputation × features</const><br>
+            Where <const>unfilledMarketSellers</const> is the count of sellers you affected to
+            unfilled market.<br>
+            <br>
+            <const>competitiveMarketScore = competitiveMarketSellers × reputation × features</const><br>
+            Where <const>competitiveMarketSellers</const> is the count of sellers you affected to
+            competitive market.<br>
+            <br>
+            <const>income</const> = <const>marketShare</const> × (1 / 0.95)^<const>gameTurn</const><br>
+            Where <const>marketShare</const> is your market share in thousandth and
+            <const>gameTurn</const> is the game turn
+          </div>
+        </div>
+        <div class="statement-section statement-warning">
+          <h1><span class="icon icon-warning">&nbsp;</span> <span>Note</span></h1>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="statement-section statement-protocol">
+    <h1><span class="icon icon-protocol">&nbsp;</span> <span>Game input</span></h1>
+    <!-- Protocol block -->
+    <div class="blk">
+      <div class="title">Input for a turn</div>
+      <div class="text">
+        <p><span class="statement-lineno">Line 1 : </span> 10 integers <var>id</var>, <var>playerCount</var>, <var>turn</var>, <var>cash</var>, <var>devs</var>, <var>sellers</var>, <var>managers</var>, <var>features</var>, <var>tests</var> and <var>bugs</var> where:</p>
+        <ul>
+          <li><var>id</var> : your player id</li>
+          <li><var>playerCount</var> : number of players</li>
+          <li><var>turn</var> : number of turn since the beginning</li>
+          <li><var>cash</var> : cash of your start-up</li>
+          <li><var>devs</var> : developers employees of your start-up</li>
+          <li><var>sellers</var> : sellers employees of your start-up</li>
+          <li><var>managers</var> : managers employees of your start-up</li>
+          <li><var>features</var> : features developed in your software</li>
+          <li><var>tests</var> : tests developed in your software</li>
+          <li><var>bugs</var> : bugs in your software</li>
+        </ul>
+      </div>
+      <p><span class="statement-lineno"><var>playerCount</var> following lines : </span> one line for each player. First line is for player 0, next one for player 1, etc. Each line contains 3 integers <var>startUpId</var> start-up id, <var>marketShare</var> start-up market share and <var>reputation</var> start-up reputation</span> </p>
+    </div>
+    <div class="blk">
+      <div class="title">Output for a turn</div>
+      <div class="text">One line containing 5 or 6 integers separated by space <action>devsToHire</action>, <action>sellersToHire</action>, <action>managersToHire</action>, <action>maintenanceDevs</action>, <action>competitiveSellers</action> and <action>targetId</action></div>
+      <p><span>Constraints for output values:</span></p>
+      <ul>
+        <li>-1 ≤ <action>managersToHire</action> ≤ 1</li>
+        <li>|<action>devsToHire</action>| + |<action>sellersToHire</action>| ≤ 2 × <var>managers</var> where |n| means absolute value of n</li>
+        <li>0 ≤ <action>maintenanceDevs</action> ≤ <var>devs</var> + <action>devsToHire</action></li>
+        <li>0 ≤ <action>competitiveSellers</action> ≤ <var>sellers</var> + <action>sellersToHire</action></li>
+        <li><var>devs</var> + <action>devsToHire</action> + <var>sales</var> + <action>salesToHire</action> ≤ 10 × <var>managers</var> </li>
+      </ul>
+      <action>devsToHire</action>: number of developers you want to hire for next round, it can be negative.<br>
+      <action>sellersToHire</action>: number of sellers you want to hire for next round, it can be negative.<br>
+      <action>managersToHire</action>: number of managers you want to hire for next round, it can be negative.<br>
+      <action>maintenanceDevs</action>: number of your developers affected to fix bugs <b>and</b> increase tests<br>
+      Beware tests number can be increased only if a feature already exists or has been developed during the turn<br>
+      <action>competitiveSellers</action>: sellers that will try to steal market share from competitors<br>
+      <action>targetId</action> must be a player id (different from your id)<br>
+    </div>
+  </div>
+</div>
