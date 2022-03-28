@@ -98,6 +98,13 @@
         stolenMarketShare = minimum between <const>competitorsCount × 1%</const> and
         <const>competitorsCount × 0.5% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
         <br>
+        <b>Initial conditions</b><br>
+        <ul>
+          <li>cash = <const>1000</const></li>
+          <li>managers = <const>1</const></li>
+          <li>devs = <const>0</const></li>
+          <li>sellers = <const>0</const></li>
+        </ul>
 
         <!-- Victory conditions -->
 
@@ -174,13 +181,9 @@
             competitive market.<br>
             <br>
             <const>income</const> = <const>marketShare</const> × (1 / 0.95)^<const>gameTurn</const><br>
-            Where <const>marketShare</const> is your market share in thousandth and
+            Where <const>marketShare</const> is your market share in thousandths and
             <const>gameTurn</const> is the game turn
           </div>
-        </div>
-        <div class="statement-section statement-warning">
-          <h1><span class="icon icon-warning">&nbsp;</span> <span>Note</span></h1>
-
         </div>
       </div>
     </div>
@@ -192,11 +195,12 @@
     <div class="blk">
       <div class="title">Input for a turn</div>
       <div class="text">
-        <p><span class="statement-lineno">Line 1 : </span> 10 integers <var>id</var>, <var>playerCount</var>, <var>turn</var>, <var>cash</var>, <var>devs</var>, <var>sellers</var>, <var>managers</var>, <var>features</var>, <var>tests</var> and <var>bugs</var> where:</p>
+        <p><span class="statement-lineno">Line 1 : </span> 11 integers <var>id</var>, <var>playerCount</var>, <var>turn</var>, <var>income</var>, <var>cash</var>, <var>devs</var>, <var>sellers</var>, <var>managers</var>, <var>features</var>, <var>tests</var> and <var>bugs</var> where:</p>
         <ul>
-          <li><var>id</var> : your player id</li>
+          <li><var>id</var> : your startUp id</li>
           <li><var>playerCount</var> : number of players</li>
           <li><var>turn</var> : number of turn since the beginning</li>
+          <li><var>income</var> : your income for this turn</li>
           <li><var>cash</var> : cash of your start-up</li>
           <li><var>devs</var> : developers employees of your start-up</li>
           <li><var>sellers</var> : sellers employees of your start-up</li>
@@ -206,11 +210,11 @@
           <li><var>bugs</var> : bugs in your software</li>
         </ul>
       </div>
-      <p><span class="statement-lineno"><var>playerCount</var> following lines : </span> one line for each player. First line is for player 0, next one for player 1, etc. Each line contains 3 integers <var>startUpId</var> start-up id, <var>marketShare</var> start-up market share and <var>reputation</var> start-up reputation</span> </p>
+      <p><span class="statement-lineno"><var>playerCount</var> following lines : </span> one line for each player. First line is for player 0, next one for player 1, etc. Each line contains 3 integers <var>startUpId</var> start-up id, <var>marketShare</var> start-up market share in thousandths and <var>reputation</var> start-up reputation</span> </p>
     </div>
     <div class="blk">
       <div class="title">Output for a turn</div>
-      <div class="text">One line containing 5 or 6 integers separated by space <action>devsToHire</action>, <action>sellersToHire</action>, <action>managersToHire</action>, <action>maintenanceDevs</action>, <action>competitiveSellers</action> and <action>targetId</action></div>
+      <div class="text">One line containing 5 or 6 integers separated by space <action>devsToHire</action>, <action>sellersToHire</action>, <action>managersToHire</action>, <action>maintenanceDevs</action>, <action>competitiveSellers</action> and <action>targetId</action> which is optional</div>
       <p><span>Constraints for output values:</span></p>
       <ul>
         <li>-1 ≤ <action>managersToHire</action> ≤ 1</li>
@@ -222,10 +226,10 @@
       <action>devsToHire</action>: number of developers you want to hire for next round, it can be negative.<br>
       <action>sellersToHire</action>: number of sellers you want to hire for next round, it can be negative.<br>
       <action>managersToHire</action>: number of managers you want to hire for next round, it can be negative.<br>
-      <action>maintenanceDevs</action>: number of your developers affected to fix bugs <b>and</b> increase tests<br>
-      Beware tests number can be increased only if a feature already exists or has been developed during the turn<br>
-      <action>competitiveSellers</action>: sellers that will try to steal market share from competitors<br>
-      <action>targetId</action> must be a player id (different from your id)<br>
+      <action>maintenanceDevs</action>: number of your developers affected to fix bugs <b>and</b> increase tests.<br>
+      Beware tests number can be increased only if a feature already exists or has been developed during the turn.<br>
+      <action>competitiveSellers</action>: sellers that will try to steal market share from competitors.<br>
+      <action>targetId</action> must be a startUp id (different from your id). This output is optional.<br>
     </div>
   </div>
 </div>

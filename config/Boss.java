@@ -35,7 +35,7 @@ class Player {
             player.setId(in.nextInt());
             int playerCount = in.nextInt();
             player.setTurn(in.nextInt());
-            player.setIncomeFactor(in.nextFloat());
+            player.setIncomeFactor(in.nextInt());
 
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());

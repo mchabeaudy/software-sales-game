@@ -3,7 +3,7 @@ gameloop
 read id:int
 read playerCount:int
 read turn:int
-read incomeFactor:float
+read income:int
 
 read cash:int
 read devs:int

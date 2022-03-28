@@ -19,7 +19,7 @@ public class Player1 {
     private int bugs;
     private int tests;
     private int turn = 0;
-    private float incomeFactor;
+    private int income;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
     private final Map<Integer, Integer> reputations = new HashMap<>();
@@ -34,7 +34,7 @@ public class Player1 {
             player.setId(in.nextInt());
             int playerCount = in.nextInt();
             player.setTurn(in.nextInt());
-            player.setIncomeFactor(in.nextFloat());
+            player.setIncome(in.nextInt());
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());
             player.setSellers(in.nextInt());
@@ -67,7 +67,7 @@ public class Player1 {
         int sellersToRecruit = 0;
         int managersToRecruit = 0;
         int market = marketShares.get(id);
-        double revenue = (int) (market * incomeFactor);
+        double revenue = (int) (market * income);
 
         if (managers < 5 || ((devs + sellers) / 4 > managers)) {
             managersToRecruit = 1;
@@ -225,12 +225,12 @@ public class Player1 {
         return marketShares;
     }
 
-    public float getIncomeFactor() {
-        return incomeFactor;
+    public int getIncome() {
+        return income;
     }
 
-    public void setIncomeFactor(float incomeFactor) {
-        this.incomeFactor = incomeFactor;
+    public void setIncome(int income) {
+        this.income = income;
     }
 
     public Map<Integer, Integer> getReputations() {
@@ -249,7 +249,7 @@ public class Player1 {
                 ", bugs=" + bugs +
                 ", tests=" + tests +
                 ", turn=" + turn +
-                ", incomeFactor=" + incomeFactor +
+                ", incomeFactor=" + income +
                 ", marketShares=" + marketShares +
                 ", reputations=" + reputations +
                 '}';

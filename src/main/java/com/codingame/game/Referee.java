@@ -209,9 +209,9 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(Integer.toString(player.getPlayerId()));
         player.sendInputLine(Integer.toString(playerCount));
         player.sendInputLine(Integer.toString(turn));
-        player.sendInputLine(Float.toString((float) Math.pow(1d / 0.95, turn - 1d)));
 
         Company company = companiesById.get(player.getPlayerId());
+        player.sendInputLine(Integer.toString((int) (company.getMarket() * Math.pow(1.0 / 0.95, (turn - 1)))));
         player.sendInputLine(Integer.toString(company.getCash()));
         player.sendInputLine(Integer.toString(company.getTotalDevs()));
         player.sendInputLine(Integer.toString(company.getTotalSellers()));

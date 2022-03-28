@@ -24,7 +24,7 @@ public class Player2 {
     private int tests;
     private int turn = 0;
     private int market;
-    private float incomeFactor;
+    private int income;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
 
@@ -38,7 +38,7 @@ public class Player2 {
             player.setId(in.nextInt());
             int playerCount = in.nextInt();
             player.setTurn(in.nextInt());
-            player.setIncomeFactor(in.nextFloat());
+            player.setIncome(in.nextInt());
 
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());
@@ -255,11 +255,11 @@ public class Player2 {
                 '}';
     }
 
-    public float getIncomeFactor() {
-        return incomeFactor;
+    public int getIncome() {
+        return income;
     }
 
-    public void setIncomeFactor(float incomeFactor) {
-        this.incomeFactor = incomeFactor;
+    public void setIncome(int income) {
+        this.income = income;
     }
 }
