@@ -222,9 +222,8 @@ public class Company {
         return featuresInProgress.values().stream().mapToInt(Integer::intValue).sum();
     }
 
-    public void takeUnfilledMarket(double totalScores, int freeMarketAvailableForSale) {
-        addMarket((int) (reputation * unfilledMarketSellers * getTotalFeatures() * freeMarketAvailableForSale
-                / totalScores));
+    public void takeUnfilledMarket(double unfilledMarketScoreSum, int freeMarketAvailableForSale) {
+        addMarket((int) (unfilledMarketScore * freeMarketAvailableForSale / unfilledMarketScoreSum));
     }
 
     public void takeMarketFrom(Company competitor) {

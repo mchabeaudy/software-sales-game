@@ -103,7 +103,8 @@ public class Referee extends AbstractReferee {
             try {
                 Company company = companiesById.get(player.getPlayerId());
                 Action action = player.getAction(company, companiesById.keySet());
-                gameManager.addToGameSummary("Player %s played " + action.displayValue());
+                gameManager.addToGameSummary(
+                        String.format("Player %s played %s", player.getNicknameToken(), action.displayValue()));
 
                 // devs
                 int newTotalDevs = company.getTotalDevs() + action.getDevsToRecruit();
@@ -126,7 +127,8 @@ public class Referee extends AbstractReferee {
                 player.deactivate(player.getNicknameToken() + " timeout!");
                 player.setScore(-1);
             } catch (InvalidAction e) {
-                gameManager.addToGameSummary(GameManager.formatErrorMessage(player.getNicknameToken() + " - " +e.getMessage()));
+                gameManager.addToGameSummary(
+                        GameManager.formatErrorMessage(player.getNicknameToken() + " - " + e.getMessage()));
                 player.deactivate(e.getMessage());
                 player.setScore(-1);
             }
@@ -172,13 +174,13 @@ public class Referee extends AbstractReferee {
             double reputationSum = companies.stream().mapToInt(Company::getReputation).sum();
 
             // Free market
-            double freeMarketSellersAverage =
-                    companies.stream().mapToInt(Company::getUnfilledMarketSellers).average().orElse(0);
+            int unfilledMarketScoreSum = companies.stream()
+                    .mapToInt(Company::getUnfilledMarketScore)
+                    .sum();
             int takenMarket = companies.stream().mapToInt(Company::getMarket).sum();
-            if (freeMarketSellersAverage > 0) {
+            if (unfilledMarketScoreSum > 0) {
                 int freeMarketAvailableForSale = Math.min(30 * playerCount, 1000 - takenMarket);
-                double averages = featuresAverage * freeMarketSellersAverage * reputationSum;
-                companies.forEach(c -> c.takeUnfilledMarket(averages, freeMarketAvailableForSale));
+                companies.forEach(c -> c.takeUnfilledMarket(unfilledMarketScoreSum, freeMarketAvailableForSale));
             }
 
             // Competitive market
