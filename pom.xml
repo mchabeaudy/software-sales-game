@@ -5,7 +5,7 @@
 
   <groupId>com.codingame.game</groupId>
   <artifactId>software-sales</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
 
   <properties>
     <gamengine.version>3.4.5</gamengine.version>
