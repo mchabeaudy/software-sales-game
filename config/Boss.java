@@ -20,7 +20,7 @@ class Player {
     private int tests;
     private int turn = 0;
     private int market;
-    private float incomeFactor;
+    private int income;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
     private final Map<Integer, Integer> reputations = new HashMap<>();
@@ -35,7 +35,7 @@ class Player {
             player.setId(in.nextInt());
             int playerCount = in.nextInt();
             player.setTurn(in.nextInt());
-            player.setIncomeFactor(in.nextInt());
+            player.setIncome(in.nextInt());
 
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());
@@ -68,18 +68,18 @@ class Player {
         int devsToRecruit = 0;
         int sellersToRecruit = 0;
         int managersToRecruit = 0;
-        int market = marketShares.get(id);
-        double revenue = (int) (market * incomeFactor);
 
         if (managers < 5 || ((devs + sellers) / 4 > managers)) {
             managersToRecruit = 1;
         }
         int available = Math.min(managers * 10 - devs - sellers, managers * 2);
 
-        while ((getCost(managersToRecruit, devsToRecruit, sellersToRecruit) < revenue - DEV_COST || devs + sellers < 20)
+        while ((getCost(managersToRecruit, devsToRecruit, sellersToRecruit) < income - DEV_COST || devs + sellers < 20)
                 && available != 0) {
             available--;
-            if (devsToRecruit + devs > sellersToRecruit + sellers) {
+            if (features < 10) {
+                devsToRecruit++;
+            } else if (devsToRecruit + devs > sellersToRecruit + sellers) {
                 sellersToRecruit++;
             } else {
                 devsToRecruit++;
@@ -89,7 +89,7 @@ class Player {
         instruction.setDevsToRecruit(devsToRecruit);
         instruction.setSellersToRecruit(sellersToRecruit);
         instruction.setManagersToRecruit(managersToRecruit);
-        int maintenanceDevs = (devs + devsToRecruit) / 2;
+        int maintenanceDevs = Math.min(Math.max((devs + devsToRecruit) / 2, bugs), devsToRecruit + devs);
         int competitiveSellers = (sellers + sellersToRecruit) / 2;
         instruction.setMaintenanceDevs(maintenanceDevs);
         instruction.setCompetitiveSellers(competitiveSellers);
@@ -235,12 +235,12 @@ class Player {
         return marketShares;
     }
 
-    public float getIncomeFactor() {
-        return incomeFactor;
+    public int getIncome() {
+        return income;
     }
 
-    public void setIncomeFactor(float incomeFactor) {
-        this.incomeFactor = incomeFactor;
+    public void setIncome(int income) {
+        this.income = income;
     }
 
     public Map<Integer, Integer> getReputations() {
@@ -260,7 +260,7 @@ class Player {
                 ", tests=" + tests +
                 ", turn=" + turn +
                 ", market=" + market +
-                ", incomeFactor=" + incomeFactor +
+                ", income=" + income +
                 ", marketShares=" + marketShares +
                 ", reputations=" + reputations +
                 '}';

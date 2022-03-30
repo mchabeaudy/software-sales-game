@@ -3,6 +3,7 @@ package com.codingame.game;
 import static com.codingame.game.Constants.DEV_COST;
 import static com.codingame.game.Constants.MANAGER_COST;
 import static com.codingame.game.Constants.SELLER_COST;
+import static com.codingame.game.Constants.getNextInt;
 import static com.codingame.game.Constants.getProb;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +27,7 @@ public class Company {
     private int completedFeatures;
     private Map<Integer, Integer> featuresInProgress = new HashMap<>();
 
+    private final AtomicInteger counter = new AtomicInteger(0);
     private int featureDevs;
     private int maintenanceDevs;
     private int inactiveDevs;
@@ -32,18 +35,21 @@ public class Company {
     private int competitiveMarketSellers;
     private int inactiveSellers;
     private int managers = 1;
-    private int cash = 1000;
+    private int cash = 1500;
     private int bugs;
     private int tests;
     private int newBugs;
     private int market;
+    private int turnUnfilledMarket;
     private int resolvedBugs;
+    private int hiddenResolvedBugs;
     private int reputation;
     private int competitiveScore;
     private int unfilledMarketScore;
     private int totalFeatures;
     private Integer targetId;
     private Player player;
+    private boolean active = true;
 
     public Company(Player player) {
         this.player = player;
@@ -68,14 +74,16 @@ public class Company {
     }
 
     public void payDay(int turn) {
-        addCash((int) (market * Math.pow(1.0 / 0.95, (turn - 1))));
+        if (active) {
+            addCash((int) (market * Math.pow(1.0 / 0.95, (turn - 1))));
 
-        while (costToPay() > cash) {
-            decreaseEmployee();
+            while (costToPay() > cash) {
+                decreaseEmployee();
+            }
+            addCash(-managers * MANAGER_COST);
+            addCash(-unfilledMarketSellers * SELLER_COST);
+            addCash(-featureDevs * DEV_COST);
         }
-        addCash(-managers * MANAGER_COST);
-        addCash(-unfilledMarketSellers * SELLER_COST);
-        addCash(-featureDevs * DEV_COST);
     }
 
     private int costToPay() {
@@ -116,7 +124,11 @@ public class Company {
         // resolve bugs
         int nbBugs = bugs;
         bugs = max(0, bugs - maintenanceDevs);
-        resolvedBugs += nbBugs - bugs;
+        if (market > 0) {
+            resolvedBugs += nbBugs - bugs;
+        } else {
+            hiddenResolvedBugs += nbBugs - bugs;
+        }
         if (getTotalFeatures() > 0) {
             tests += maintenanceDevs;
         }
@@ -129,7 +141,7 @@ public class Company {
             featuresInProgress.forEach((time, featuresCount) -> {
                 double chanceToBug = getProb(time) * m;
                 newBugs += (int) range(0, featuresCount)
-                        .filter(i -> random.nextInt(1000) < chanceToBug)
+                        .filter(i -> getNextInt(random, counter.getAndAdd(1)) < chanceToBug)
                         .count();
             });
             bugs += newBugs;
@@ -223,7 +235,7 @@ public class Company {
     }
 
     public void takeUnfilledMarket(double unfilledMarketScoreSum, int freeMarketAvailableForSale) {
-        addMarket((int) (unfilledMarketScore * freeMarketAvailableForSale / unfilledMarketScoreSum));
+        turnUnfilledMarket = (int) (unfilledMarketScore * freeMarketAvailableForSale / unfilledMarketScoreSum);
     }
 
     public void takeMarketFrom(Company competitor) {
@@ -231,7 +243,7 @@ public class Company {
     }
 
     public void takeMarketFrom(Company competitor, int factor) {
-        if (competitiveScore > competitor.getCompetitiveScore()) {
+        if (reputation > competitor.getReputation()) {
             int requestMarket = competitor.getCompetitiveScore() == 0 ? 10 * factor
                     : min(10 * factor, 5 * factor * competitiveScore / competitor.getCompetitiveScore());
             int marketToTake = min(requestMarket, competitor.getMarket());
@@ -242,9 +254,24 @@ public class Company {
 
     public void prepareForSales() {
         totalFeatures = completedFeatures + getFeaturesInProgressCount();
-        competitiveScore = reputation * competitiveMarketSellers * totalFeatures;
-        unfilledMarketScore = reputation * unfilledMarketSellers * totalFeatures;
+        competitiveScore = totalFeatures >= 10 ? reputation * competitiveMarketSellers * totalFeatures : 0;
+        unfilledMarketScore = totalFeatures >= 10 ? reputation * unfilledMarketSellers * totalFeatures : 0;
         market = (int) Math.round(0.95 * market);
+        turnUnfilledMarket = 0;
     }
 
+    public void processFreeMarket() {
+        market += turnUnfilledMarket;
+    }
+
+    public void deactivate() {
+        inactiveDevs = 0;
+        featureDevs = 0;
+        maintenanceDevs = 0;
+        inactiveSellers = 0;
+        unfilledMarketSellers = 0;
+        competitiveMarketSellers = 0;
+        managers = 0;
+        active = false;
+    }
 }

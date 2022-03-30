@@ -47,13 +47,14 @@ public class Referee extends AbstractReferee {
     private final Map<Integer, Rectangle> bars = new HashMap<>();
 
     private int playerCount;
+    private int turn;
 
 
     @Override
     public void init() {
         playerCount = gameManager.getPlayerCount();
         gameManager.setMaxTurns(MAX_TURN * playerCount);
-
+        Constants.resetProb(random);
         range(0, playerCount)
                 .forEach(i -> {
                     Player p = gameManager.getPlayer(i);
@@ -98,6 +99,7 @@ public class Referee extends AbstractReferee {
             sendInput(p, turn);
             p.execute();
         }
+        this.turn=turn;
 
         for (Player player : gameManager.getActivePlayers()) {
             try {
@@ -123,14 +125,9 @@ public class Referee extends AbstractReferee {
 
 
             } catch (TimeoutException e) {
-                gameManager.addToGameSummary(GameManager.formatErrorMessage(player.getNicknameToken() + " timeout!"));
-                player.deactivate(player.getNicknameToken() + " timeout!");
-                player.setScore(-1);
+                deactivatePlayer(player, "timeout!");
             } catch (InvalidAction e) {
-                gameManager.addToGameSummary(
-                        GameManager.formatErrorMessage(player.getNicknameToken() + " - " + e.getMessage()));
-                player.deactivate(e.getMessage());
-                player.setScore(-1);
+                deactivatePlayer(player, e.getMessage());
             }
         }
         calculateState(turn);
@@ -169,42 +166,39 @@ public class Referee extends AbstractReferee {
     private void evolveMarket() {
         companies.forEach(Company::prepareForSales);
 
-        double featuresAverage = companies.stream().mapToInt(Company::getTotalFeatures).average().orElse(0);
-        if (featuresAverage > 0) {
-            double reputationSum = companies.stream().mapToInt(Company::getReputation).sum();
+        List<Company> activeCompanies = gameManager.getActivePlayers().stream()
+                .map(p -> companiesById.get(p.getPlayerId()))
+                .collect(Collectors.toList());
 
-            // Free market
-            int unfilledMarketScoreSum = companies.stream()
-                    .mapToInt(Company::getUnfilledMarketScore)
-                    .sum();
-            int takenMarket = companies.stream().mapToInt(Company::getMarket).sum();
-            if (unfilledMarketScoreSum > 0) {
-                int freeMarketAvailableForSale = Math.min(30 * playerCount, 1000 - takenMarket);
-                companies.forEach(c -> c.takeUnfilledMarket(unfilledMarketScoreSum, freeMarketAvailableForSale));
-            }
-
-            // Competitive market
-            double competitiveMarketSellersAverage =
-                    companies.stream().mapToInt(Company::getCompetitiveMarketSellers).average().orElse(0);
-            if (competitiveMarketSellersAverage > 0) {
-                // competitive market with target
-                List<Company> compsWithTarget = companies.stream()
-                        .filter(c -> c.getCompetitiveScore() > 0 && Objects.nonNull(c.getTargetId()))
-                        .collect(Collectors.toList());
-                Collections.shuffle(compsWithTarget);
-                compsWithTarget.forEach(comp -> comp.takeMarketFrom(companies.stream()
-                        .filter(c -> comp.getTargetId().equals(c.getPlayer().getPlayerId()))
-                        .findAny()
-                        .get(), companies.size() - 1));
-
-                // competitive market without target
-                List<Company> compsWithoutTarget = companies.stream()
-                        .filter(c -> c.getCompetitiveScore() > 0 && Objects.isNull(c.getTargetId()))
-                        .collect(Collectors.toList());
-                Collections.shuffle(compsWithoutTarget);
-                compsWithoutTarget.forEach(comp -> companies.forEach(comp::takeMarketFrom));
-            }
+        // Free market
+        int unfilledMarketScoreSum = activeCompanies.stream()
+                .mapToInt(Company::getUnfilledMarketScore)
+                .sum();
+        int takenMarket = companies.stream().mapToInt(Company::getMarket).sum();
+        if (unfilledMarketScoreSum > 0) {
+            int freeMarketAvailableForSale = Math.min(30 * playerCount, 1000 - takenMarket);
+            activeCompanies.forEach(c -> c.takeUnfilledMarket(unfilledMarketScoreSum, freeMarketAvailableForSale));
         }
+
+        // Competitive market
+        // With target
+        List<Company> compsWithTarget = activeCompanies.stream()
+                .filter(c -> c.getCompetitiveScore() > 0 && Objects.nonNull(c.getTargetId()))
+                .collect(Collectors.toList());
+        Collections.shuffle(compsWithTarget);
+        compsWithTarget.forEach(comp -> companies.stream()
+                .filter(c -> Objects.equals(comp.getTargetId(), c.getPlayer().getPlayerId()))
+                .findAny()
+                .ifPresent(c -> comp.takeMarketFrom(c, companies.size() - 1)));
+
+        // Without target
+        List<Company> compsWithoutTarget = activeCompanies.stream()
+                .filter(c -> c.getCompetitiveScore() > 0 && Objects.isNull(c.getTargetId()))
+                .collect(Collectors.toList());
+        Collections.shuffle(compsWithoutTarget);
+        compsWithoutTarget.forEach(comp -> companies.forEach(comp::takeMarketFrom));
+
+        activeCompanies.forEach(Company::processFreeMarket);
     }
 
     private void sendInput(Player player, int turn) {
@@ -223,9 +217,7 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(Integer.toString(company.getBugs()));
         range(0, playerCount).forEach(i -> {
             Company comp = companiesById.get(i);
-            player.sendInputLine(Integer.toString(i));
-            player.sendInputLine(Integer.toString(comp.getMarket()));
-            player.sendInputLine(Integer.toString(comp.getReputation()));
+            player.sendInputLine(i + " " + comp.getMarket() + " " + comp.getReputation());
         });
     }
 
@@ -238,5 +230,12 @@ public class Referee extends AbstractReferee {
     public void onEnd() {
         endScreenModule.setScores(
                 gameManager.getPlayers().stream().mapToInt(AbstractMultiplayerPlayer::getScore).toArray());
+    }
+
+    private void deactivatePlayer(Player player, String message) {
+        gameManager.addToGameSummary(GameManager.formatErrorMessage(player.getNicknameToken() + " - " + message));
+        player.deactivate(message);
+        companiesById.get(player.getPlayerId()).deactivate();
+        player.setScore(-1);
     }
 }

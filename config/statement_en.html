@@ -76,6 +76,7 @@
         in advanced rules). The higher is your reputation, the easier it will be for you to sell.<br>
         Market is always growing, each turn all start-ups have their market share reduced to 95% of
         their initial value to represent arrival of new clients.<br>
+        Also you can sell your software only if you have <b>at least 10 features</b>.<br>
         <br>
         <b>Phase 1 - Unfilled market:</b><br>
         Your <const>unfilledMarketScore</const> is calculated (formula in advanced rules) then your
@@ -83,6 +84,7 @@
         <const>availableUnfilledMarket × unfilledMarkerScore / totalUnfilledMarketScore</const><br>
         Where availableUnfilledMarket is the minimum between <const>3% × playerCount</const> and the
         remaining unfilled market<br>
+        The part of market share acquired this way is protected during this turn from competitive market (it cannot be stolen by competitors for this turn).<br>
         <br>
         <b>Phase 2 - Competitive market</b><br>
         <br>
@@ -96,11 +98,11 @@
         Instead of fighting everyone you can decide to focus on only one competitor in this case
         stolenMarket will be calculated by (if your reputation is greater):<br>
         stolenMarketShare = minimum between <const>competitorsCount × 1%</const> and
-        <const>competitorsCount × 0.5% × competitiveMarkerScoreA / competitiveMarkerScoreB)</const><br>
+        <const>competitorsCount × 0.5% × competitiveMarkerScoreA / competitiveMarkerScoreB</const><br>
         <br>
         <b>Initial conditions</b><br>
         <ul>
-          <li>cash = <const>1000</const></li>
+          <li>cash = <const>1500</const></li>
           <li>managers = <const>1</const></li>
           <li>devs = <const>0</const></li>
           <li>sellers = <const>0</const></li>
@@ -171,10 +173,12 @@
             Where <const>existingBugs</const> is remaining unfixed bugs in your application and
             <const>fixedBugs</const> is total bugs count you have already fixed (Yes, even fixed a
             bug will damage you reputation forever).<br>
+            <b>If you fix bugs when your market share is equal to 0 it will not affect your
+              reputation (No harm seen, no harm done!)</b><br>
             <br>
             <const>unfilledMarketScore = unfilledMarketSellers × reputation × features</const><br>
             Where <const>unfilledMarketSellers</const> is the count of sellers you affected to
-            unfilled market.<br>
+            unfilled market (unfilledMarketSellers = sellers - competitiveSellers).<br>
             <br>
             <const>competitiveMarketScore = competitiveMarketSellers × reputation × features</const><br>
             Where <const>competitiveMarketSellers</const> is the count of sellers you affected to

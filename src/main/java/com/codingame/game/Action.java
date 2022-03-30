@@ -69,6 +69,10 @@ public class Action {
         if (competitiveSellers < 0 || competitiveSellers > totalSellers) {
             throw new InvalidAction("Competitive sellers must be between 0 and " + totalSellers);
         }
+        // Total count
+        if (totalDevs + totalSellers > 10 * company.getManagers()) {
+            throw new InvalidAction("You have too many employees!");
+        }
 
         if (Objects.nonNull(targetId) && (targetId == player.getPlayerId() || !playerIds.contains(targetId))) {
             throw new InvalidAction("Invalid target player id");

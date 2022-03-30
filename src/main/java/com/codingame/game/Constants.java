@@ -1,7 +1,12 @@
 package com.codingame.game;
 
+import static java.util.stream.IntStream.range;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public final class Constants {
 
@@ -20,6 +25,7 @@ public final class Constants {
     public static final int SELLER_COST = 10;
 
     private static final Map<Integer, Integer> PROB_TABLE = new HashMap<>();
+    private static final List<Integer> FIRST_PROB = new ArrayList<>(5000);
 
     static {
         PROB_TABLE.put(1, P1);
@@ -31,13 +37,24 @@ public final class Constants {
         PROB_TABLE.put(7, P7);
         PROB_TABLE.put(8, P8);
         PROB_TABLE.put(9, P9);
-
     }
 
     private Constants() {
     }
 
+    public static void resetProb(Random random) {
+        FIRST_PROB.clear();
+        range(0, 5000).forEach(i -> FIRST_PROB.add(random.nextInt(1000)));
+    }
+
     public static int getProb(int time) {
         return PROB_TABLE.getOrDefault(time, 0);
+    }
+
+    public static int getNextInt(Random random, int index) {
+        if (index < 5000) {
+            return FIRST_PROB.get(index);
+        }
+        return random.nextInt(1000);
     }
 }

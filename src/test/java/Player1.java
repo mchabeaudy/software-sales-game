@@ -67,14 +67,13 @@ public class Player1 {
         int sellersToRecruit = 0;
         int managersToRecruit = 0;
         int market = marketShares.get(id);
-        double revenue = (int) (market * income);
 
         if (managers < 5 || ((devs + sellers) / 4 > managers)) {
             managersToRecruit = 1;
         }
         int available = Math.min(managers * 10 - devs - sellers, managers * 2);
 
-        while ((getCost(managersToRecruit, devsToRecruit, sellersToRecruit) < revenue - DEV_COST || devs + sellers < 20)
+        while ((getCost(managersToRecruit, devsToRecruit, sellersToRecruit) < income - DEV_COST || devs + sellers < 20)
                 && available != 0) {
             available--;
             if (devsToRecruit + devs > sellersToRecruit + sellers) {

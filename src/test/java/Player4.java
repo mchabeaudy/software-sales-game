@@ -3,12 +3,8 @@ import static java.util.stream.IntStream.range;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class Player2 {
+public class Player4 {
 
     public static final int MANAGER_COST = 20;
     public static final int DEV_COST = 10;
@@ -23,15 +19,15 @@ public class Player2 {
     private int bugs;
     private int tests;
     private int turn = 0;
-    private int market;
     private int income;
 
     private final Map<Integer, Integer> marketShares = new HashMap<>();
+    private final Map<Integer, Integer> reputations = new HashMap<>();
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
 
-        Player2 player = new Player2();
+        Player4 player = new Player4();
 
         while (true) {
 
@@ -39,7 +35,6 @@ public class Player2 {
             int playerCount = in.nextInt();
             player.setTurn(in.nextInt());
             player.setIncome(in.nextInt());
-
             player.setCash(in.nextInt());
             player.setDevs(in.nextInt());
             player.setSellers(in.nextInt());
@@ -48,15 +43,14 @@ public class Player2 {
             player.setTests(in.nextInt());
             player.setBugs(in.nextInt());
 
-            System.err.println(player);
-
             range(0, playerCount).forEach(k -> {
                 int startUpId = in.nextInt();
                 int marketShare = in.nextInt();
                 int reputation = in.nextInt();
                 player.getMarketShares().put(startUpId, marketShare);
-                System.err.println("id: " + startUpId + "   market share:" + marketShare);
+                player.getReputations().put(startUpId, reputation);
             });
+            System.err.println(player);
 
             Instruction instruction = player.getInstruction();
             System.out.println(
@@ -72,9 +66,6 @@ public class Player2 {
         int devsToRecruit = 0;
         int sellersToRecruit = 0;
         int managersToRecruit = 0;
-        double cost = getCost(managersToRecruit, devsToRecruit, sellersToRecruit);
-        int playerCount = marketShares.size();
-        int market = marketShares.get(id);
 
         if (managers < 5 || ((devs + sellers) / 4 > managers)) {
             managersToRecruit = 1;
@@ -84,7 +75,9 @@ public class Player2 {
         while ((getCost(managersToRecruit, devsToRecruit, sellersToRecruit) < income - DEV_COST || devs + sellers < 20)
                 && available != 0) {
             available--;
-            if (devsToRecruit + devs > sellersToRecruit + sellers) {
+            if (features < 10) {
+                devsToRecruit++;
+            } else if (devsToRecruit + devs > sellersToRecruit + sellers) {
                 sellersToRecruit++;
             } else {
                 devsToRecruit++;
@@ -94,10 +87,13 @@ public class Player2 {
         instruction.setDevsToRecruit(devsToRecruit);
         instruction.setSellersToRecruit(sellersToRecruit);
         instruction.setManagersToRecruit(managersToRecruit);
-        int md = Math.min(bugs, devs + devsToRecruit);
-        int maintenanceDevs = Math.max(md, (devs + devsToRecruit) / 2);
         int competitiveSellers = (sellers + sellersToRecruit) / 2;
-        instruction.setMaintenanceDevs(maintenanceDevs);
+        if (tests / 4 < features && features > 10) {
+            instruction.setMaintenanceDevs(devs + devsToRecruit);
+        } else {
+            int maintenanceDevs = Math.min(Math.max((devs + devsToRecruit) / 2, bugs), devsToRecruit + devs);
+            instruction.setMaintenanceDevs(maintenanceDevs);
+        }
         instruction.setCompetitiveSellers(competitiveSellers);
 
         return instruction;
@@ -229,29 +225,8 @@ public class Player2 {
         this.turn = turn;
     }
 
-    public int getMarket() {
-        return market;
-    }
-
-    public void setMarket(int market) {
-        this.market = market;
-    }
-
     public Map<Integer, Integer> getMarketShares() {
         return marketShares;
-    }
-
-    @Override
-    public String toString() {
-        return "Player{" +
-                "cash=" + cash +
-                ", devs=" + devs +
-                ", sellers=" + sellers +
-                ", managers=" + managers +
-                ", features=" + features +
-                ", bugs=" + bugs +
-                ", market=" + market +
-                '}';
     }
 
     public int getIncome() {
@@ -260,5 +235,27 @@ public class Player2 {
 
     public void setIncome(int income) {
         this.income = income;
+    }
+
+    public Map<Integer, Integer> getReputations() {
+        return reputations;
+    }
+
+    @Override
+    public String toString() {
+        return "Player1{" +
+                "id=" + id +
+                ", cash=" + cash +
+                ", devs=" + devs +
+                ", sellers=" + sellers +
+                ", managers=" + managers +
+                ", features=" + features +
+                ", bugs=" + bugs +
+                ", tests=" + tests +
+                ", turn=" + turn +
+                ", incomeFactor=" + income +
+                ", marketShares=" + marketShares +
+                ", reputations=" + reputations +
+                '}';
     }
 }

@@ -1,10 +1,8 @@
 gameloop
-
 read id:int
 read playerCount:int
 read turn:int
 read income:int
-
 read cash:int
 read devs:int
 read sellers:int
@@ -12,7 +10,6 @@ read managers:int
 read features:int
 read tests:int
 read bugs:int
-
 loop playerCount read startUpId:int marketShare:int reputation:int
 write 0 0 0 0 0
 
