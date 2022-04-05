@@ -23,6 +23,7 @@ import lombok.Setter;
 @Setter
 public class Company {
 
+    private static final int COMP_STEAL_MARKET = 8;
 
     private int completedFeatures;
     private Map<Integer, Integer> featuresInProgress = new HashMap<>();
@@ -154,7 +155,7 @@ public class Company {
     }
 
     public void evaluateReputation() {
-        reputation = max(1, (int) (100d * getTotalFeatures() / max(1d, 3d * bugs + resolvedBugs)));
+        reputation = min(2000, max(1, (int) (100d * getTotalFeatures() / max(1d, 3d * bugs + resolvedBugs))));
     }
 
     public int getTotalDevs() {
@@ -243,9 +244,10 @@ public class Company {
     }
 
     public void takeMarketFrom(Company competitor, int factor) {
-        if (reputation > competitor.getReputation()) {
-            int requestMarket = competitor.getCompetitiveScore() == 0 ? 10 * factor
-                    : min(10 * factor, 5 * factor * competitiveScore / competitor.getCompetitiveScore());
+        if (reputation >= competitor.getReputation()) {
+            int requestMarket = competitor.getCompetitiveScore() == 0 ? COMP_STEAL_MARKET * factor
+                    : min(COMP_STEAL_MARKET * factor,
+                            COMP_STEAL_MARKET / 2 * factor * competitiveScore / competitor.getCompetitiveScore());
             int marketToTake = min(requestMarket, competitor.getMarket());
             addMarket(marketToTake);
             competitor.addMarket(-marketToTake);

@@ -87,18 +87,17 @@
         The part of market share acquired this way is protected during this turn from competitive market (it cannot be stolen by competitors for this turn).<br>
         <br>
         <b>Phase 2 - Competitive market</b><br>
-        <br>
         Your <const>competitiveMarketScore</const> is calculated (formula in advanced rules). Then
         all start-ups will fight in a random order as following:<br>
-        If reputation of start-up A is greater than reputation of start-up B then start-up A will
+        If reputation of start-up A is equal or greater than reputation of start-up B then start-up A will
         steal market share from start-up B calculated by:<br>
-        stolenMarketShare = minimum between <const>1%</const> and <const>0.5% × competitiveMarketScoreA / competitiveMarketScoreB)</const><br>
+        stolenMarketShare = minimum between <const>0.8%</const> and <const>0.4% × competitiveMarketScoreA / competitiveMarketScoreB</const><br>
         <br>
         <b>Optional rule</b><br>
         Instead of fighting everyone you can decide to focus on only one competitor in this case
-        stolenMarket will be calculated by (if your reputation is greater):<br>
-        stolenMarketShare = minimum between <const>competitorsCount × 1%</const> and
-        <const>competitorsCount × 0.5% × competitiveMarkerScoreA / competitiveMarkerScoreB</const><br>
+        stolenMarket will be calculated by (if your reputation is equal or greater):<br>
+        stolenMarketShare = minimum between <const>competitorsCount × 0.8%</const> and
+        <const>competitorsCount × 0.4% × competitiveMarkerScoreA / competitiveMarkerScoreB</const><br>
         <br>
         <b>Initial conditions</b><br>
         <ul>
@@ -173,6 +172,7 @@
             Where <const>existingBugs</const> is remaining unfixed bugs in your application and
             <const>fixedBugs</const> is total bugs count you have already fixed (Yes, even fixed a
             bug will damage you reputation forever).<br>
+            Maximum value of reputation is capped at 2000<br>
             <b>If you fix bugs when your market share is equal to 0 it will not affect your
               reputation (No harm seen, no harm done!)</b><br>
             <br>
@@ -186,7 +186,10 @@
             <br>
             <const>income</const> = <const>marketShare</const> × (1 / 0.95)^<const>gameTurn</const><br>
             Where <const>marketShare</const> is your market share in thousandths and
-            <const>gameTurn</const> is the game turn
+            <const>gameTurn</const> is the game turn<br>
+            <br>
+            <h1><span class="icon icon-warning">&nbsp;</span> <span>Note</span></h1>
+            Developers and sellers work as soon as they are recruited. Managers start to work next turn after they are recruited.<br>
           </div>
         </div>
       </div>

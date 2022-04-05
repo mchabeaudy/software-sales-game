@@ -20,7 +20,7 @@ INPUT
 id: Your player id
 playerCount: Number of players
 turn: Number of turns since the beginning
-incomeFactor: Income factor
+income: Your income for this turn
 cash: Cash of your start-up
 devCount: Developers employees of your start-up
 sellerCount: Sellers employees of your start-up

@@ -43,10 +43,10 @@ public class Action {
 
     public void validate(Company company, Collection<Integer> playerIds) throws InvalidAction {
         // count
-        if (devsToRecruit + company.getFeatureDevs() < 0) {
+        if (devsToRecruit + company.getTotalDevs() < 0) {
             throw new InvalidAction("Impossible to fire more devs than you have");
         }
-        if (sellersToRecruit + company.getUnfilledMarketSellers() < 0) {
+        if (sellersToRecruit + company.getTotalSellers() < 0) {
             throw new InvalidAction("Impossible to fire more sellers than you have");
         }
         if (managersToRecruit + company.getManagers() < 0) {
