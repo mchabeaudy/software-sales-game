@@ -47,7 +47,6 @@ public class Company {
     private int reputation;
     private int competitiveScore;
     private int unfilledMarketScore;
-    private int totalFeatures;
     private Integer targetId;
     private Player player;
     private boolean active = true;
@@ -255,11 +254,16 @@ public class Company {
     }
 
     public void prepareForSales() {
-        totalFeatures = completedFeatures + getFeaturesInProgressCount();
-        competitiveScore = totalFeatures >= 10 ? reputation * competitiveMarketSellers * totalFeatures : 0;
-        unfilledMarketScore = totalFeatures >= 10 ? reputation * unfilledMarketSellers * totalFeatures : 0;
+        competitiveScore = getTotalFeatures() >= 10 ? reputation * competitiveMarketSellers * getTotalFeatures() : 0;
+        unfilledMarketScore = getTotalFeatures() >= 10 ? reputation * unfilledMarketSellers * getTotalFeatures() : 0;
         market = (int) Math.round(0.95 * market);
         turnUnfilledMarket = 0;
+        inactiveDevs = 0;
+        inactiveSellers = 0;
+    }
+
+    public int getTotalFeatures(){
+       return completedFeatures + getFeaturesInProgressCount();
     }
 
     public void processFreeMarket() {
