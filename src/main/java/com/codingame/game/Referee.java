@@ -140,7 +140,7 @@ public class Referee extends AbstractReferee {
     private void calculateState(int turn) {
         range(0, playerCount).forEach(i -> {
             Company company = companies.get(i);
-            company.payDay(turn / playerCount);
+            company.payDay(turn);
             company.developFeatures(random);
             company.evaluateReputation();
         });

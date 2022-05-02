@@ -9,13 +9,10 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.stream.IntStream.range;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -168,24 +165,17 @@ public class Company {
     public void applyManagerRule(Random random) {
         int k = getTotalDevs() + getTotalSellers();
         while (k > 4 * managers) {
+            int d = random.nextInt(k);
+            if (d < featureDevs) {
+                devRule(random.nextInt(4));
+            } else if (d < getTotalDevs()) {
+                maintenanceDevRule(random.nextInt(4));
+            } else if (d < getTotalDevs() + unfilledMarketSellers) {
+                sellerRule(random.nextInt(4));
+            } else {
+                competitiveSellerRule(random.nextInt(4));
+            }
             k--;
-            List<Consumer<Integer>> rules = new ArrayList<>();
-            if (featureDevs > 0) {
-                rules.add(this::devRule);
-            }
-            if (maintenanceDevs > 0) {
-                rules.add(this::maintenanceDevRule);
-            }
-            if (unfilledMarketSellers > 0) {
-                rules.add(this::sellerRule);
-            }
-            if (competitiveMarketSellers > 0) {
-                rules.add(this::competitiveSellerRule);
-            }
-            if (!rules.isEmpty()) {
-                int d = random.nextInt(rules.size());
-                rules.get(d).accept(random.nextInt(4));
-            }
         }
     }
 
@@ -262,8 +252,8 @@ public class Company {
         inactiveSellers = 0;
     }
 
-    public int getTotalFeatures(){
-       return completedFeatures + getFeaturesInProgressCount();
+    public int getTotalFeatures() {
+        return completedFeatures + getFeaturesInProgressCount();
     }
 
     public void processFreeMarket() {
