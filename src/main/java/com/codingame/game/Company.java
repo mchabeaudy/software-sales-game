@@ -40,7 +40,6 @@ public class Company {
     private int market;
     private int turnUnfilledMarket;
     private int resolvedBugs;
-    private int hiddenResolvedBugs;
     private int reputation;
     private int competitiveScore;
     private int unfilledMarketScore;
@@ -78,8 +77,8 @@ public class Company {
                 decreaseEmployee();
             }
             addCash(-managers * MANAGER_COST);
-            addCash(-unfilledMarketSellers * SELLER_COST);
-            addCash(-featureDevs * DEV_COST);
+            addCash(-getTotalSellers() * SELLER_COST);
+            addCash(-getTotalDevs() * DEV_COST);
         }
     }
 
@@ -123,8 +122,6 @@ public class Company {
         bugs = max(0, bugs - maintenanceDevs);
         if (market > 0) {
             resolvedBugs += nbBugs - bugs;
-        } else {
-            hiddenResolvedBugs += nbBugs - bugs;
         }
         if (getTotalFeatures() > 0) {
             tests += maintenanceDevs;
@@ -168,9 +165,9 @@ public class Company {
             int d = random.nextInt(k);
             if (d < featureDevs) {
                 devRule(random.nextInt(4));
-            } else if (d < getTotalDevs()) {
+            } else if (d < featureDevs + maintenanceDevs) {
                 maintenanceDevRule(random.nextInt(4));
-            } else if (d < getTotalDevs() + unfilledMarketSellers) {
+            } else if (d < featureDevs + maintenanceDevs + unfilledMarketSellers) {
                 sellerRule(random.nextInt(4));
             } else {
                 competitiveSellerRule(random.nextInt(4));
@@ -236,7 +233,7 @@ public class Company {
         if (reputation >= competitor.getReputation()) {
             int requestMarket = competitor.getCompetitiveScore() == 0 ? COMP_STEAL_MARKET * factor
                     : min(COMP_STEAL_MARKET * factor,
-                            COMP_STEAL_MARKET / 2 * factor * competitiveScore / competitor.getCompetitiveScore());
+                            (COMP_STEAL_MARKET * factor * competitiveScore) / (2 * competitor.getCompetitiveScore()));
             int marketToTake = min(requestMarket, competitor.getMarket());
             addMarket(marketToTake);
             competitor.addMarket(-marketToTake);
