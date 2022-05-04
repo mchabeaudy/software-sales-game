@@ -170,7 +170,7 @@
               <li>t = 9 : 0.067</li>
             </ul>
             <br>
-            <const>reputation = 100 × features / (existingBugs × 3 + fixedBugs)</const><br>
+            <const>reputation = max(1, 100 × features / max(1, (existingBugs × 3 + fixedBugs)))</const><br>
             Where <const>existingBugs</const> is remaining unfixed bugs in your application and
             <const>fixedBugs</const> is total bugs count you have already fixed (Yes, even fixed a
             bug will damage you reputation forever).<br>
